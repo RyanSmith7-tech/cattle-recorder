@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Central Vets Station Stats</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Central Vets Station Stats</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <header>
@@ -19,142 +19,179 @@
 </header>
 
 <nav>
+  <button onclick="showScreen('profile')">Station Profile</button>
   <button onclick="showScreen('setup')">Session Setup</button>
   <button onclick="showScreen('crush')">Crush Console</button>
+  <button onclick="showScreen('mob')">Mob Counts</button>
+  <button onclick="showScreen('stations'); renderStationFolders();">Stations/Years</button>
   <button onclick="showScreen('report'); generateReports();">Reports</button>
-  <button onclick="showScreen('sessions'); renderSavedSessions();">Saved Sessions</button>
 </nav>
 
 <main>
-  <section id="setup" class="screen active">
-    <h2>Session Builder</h2>
+<section id="profile" class="screen active">
+  <h2>Station Profile</h2>
+  <p>This builds a background profile for each place so reports can be interpreted by country type, nutrition risk and breeder structure.</p>
+  <div class="grid">
+    <label>Station Name <input id="profileStation" /></label>
+    <label>Manager / Contact <input id="profileManager" /></label>
+    <label>District / Region <input id="profileRegion" /></label>
+    <label>Property Size <input id="profileSize" placeholder="e.g. 85,000 ha" /></label>
+    <label>Country Type
+      <select id="profileCountryType">
+        <option value="Northern Forest">Northern Forest</option>
+        <option value="Northern Downs">Northern Downs</option>
+        <option value="Central Forest">Central Forest</option>
+        <option value="Southern Forest">Southern Forest</option>
+        <option value="Mixed / Other">Mixed / Other</option>
+      </select>
+    </label>
+    <label>Main Breed Type <input id="profileBreed" placeholder="e.g. Brahman / Composite" /></label>
+    <label>Total Cattle <input id="profileTotalCattle" type="number" /></label>
+    <label>Breeder Cows <input id="profileBreeders" type="number" /></label>
+    <label>Estimated Carrying Capacity <input id="profileCarrying" placeholder="AE or head" /></label>
+    <label>Joining System
+      <select id="profileJoining">
+        <option value="Continuous">Continuous</option>
+        <option value="Controlled">Controlled</option>
+        <option value="Part-controlled">Part-controlled</option>
+      </select>
+    </label>
+    <label>Wet Season Phosphorus Status
+      <select id="profilePhos">
+        <option value="Unknown">Unknown</option>
+        <option value="Likely adequate">Likely adequate</option>
+        <option value="Likely marginal">Likely marginal</option>
+        <option value="Likely deficient">Likely deficient</option>
+      </select>
+    </label>
+    <label>Dry Season Feed Risk
+      <select id="profileDryFeed">
+        <option value="Unknown">Unknown</option>
+        <option value="Low">Low</option>
+        <option value="Moderate">Moderate</option>
+        <option value="High">High</option>
+      </select>
+    </label>
+    <label>Typical Weaning Strategy <input id="profileWeaning" placeholder="e.g. first round / second round / early wean" /></label>
+    <label>Notes <input id="profileNotes" /></label>
+  </div>
+  <button class="primary" onclick="saveStationProfile()">Save Station Profile</button>
+  <div id="profilePreview" class="summary"></div>
+</section>
 
-    <div class="grid">
-      <label>Station Name <input id="stationName" /></label>
-      <label>Paddock Name <input id="paddockName" /></label>
-      <label>Operator/Vet <input id="operatorName" /></label>
-      <label>Session Date <input id="sessionDate" type="date" /></label>
-    </div>
+<section id="setup" class="screen">
+  <h2>Session Builder</h2>
+  <div class="grid">
+    <label>Station Name <input id="stationName" onblur="loadProfileIntoSession()" /></label>
+    <label>Season / Year <input id="seasonYear" type="number" min="2020" max="2100" /></label>
+    <label>Paddock Name <input id="paddockName" /></label>
+    <label>Mob Name <input id="mobName" placeholder="e.g. Wet cows / Heifer mob" /></label>
+    <label>Operator/Vet <input id="operatorName" /></label>
+    <label>Session Date <input id="sessionDate" type="date" /></label>
+  </div>
 
-    <h3>Recording Points</h3>
-    <div class="checks">
-      <label><input type="checkbox" id="recordClass" checked /> Class per animal</label>
-      <label><input type="checkbox" id="recordAge" checked /> Age/brand number</label>
-      <label><input type="checkbox" id="recordBCS" checked /> BCS 1-5</label>
-      <label><input type="checkbox" id="recordPreg" checked /> Pregnancy P1-P9 / Empty</label>
-      <label><input type="checkbox" id="recordWeight" /> Weight</label>
-      <label><input type="checkbox" id="recordWetDry" /> Wet/Dry</label>
-    </div>
+  <h3>Recording Points</h3>
+  <div class="checks">
+    <label><input type="checkbox" id="recordClass" checked /> Class per animal</label>
+    <label><input type="checkbox" id="recordAge" checked /> Age/brand number</label>
+    <label><input type="checkbox" id="recordBCS" checked /> BCS 1-5</label>
+    <label><input type="checkbox" id="recordPreg" checked /> Pregnancy P1-P9 / Empty</label>
+    <label><input type="checkbox" id="recordWeight" /> Weight</label>
+    <label><input type="checkbox" id="recordWetDry" /> Wet/Dry</label>
+  </div>
 
-    <h3>Fixed Session Values</h3>
-    <p>If a field is not ticked above, this fixed value is saved automatically for every animal.</p>
-    <div class="grid">
-      <label>Fixed Class
-        <select id="fixedClass">
-          <option value="">None</option>
-          <option value="H">Maiden Heifer</option>
-          <option value="F">First Lactation Heifer</option>
-          <option value="W">Wet Cow</option>
-          <option value="D">Dry Cow</option>
-          <option value="C">Cull for Age Cow</option>
-        </select>
-      </label>
-      <label>Fixed Wet/Dry
-        <select id="fixedWetDry">
-          <option value="">None</option>
-          <option value="Wet">Wet</option>
-          <option value="Dry">Dry</option>
-        </select>
-      </label>
-    </div>
+  <h3>Fixed Session Values</h3>
+  <div class="grid">
+    <label>Fixed Class
+      <select id="fixedClass">
+        <option value="">None</option><option value="H">Maiden Heifer</option><option value="F">First Lactation Heifer</option>
+        <option value="W">Wet Cow</option><option value="D">Dry Cow</option><option value="C">Cull for Age Cow</option>
+      </select>
+    </label>
+    <label>Fixed Wet/Dry
+      <select id="fixedWetDry"><option value="">None</option><option value="Wet">Wet</option><option value="Dry">Dry</option></select>
+    </label>
+  </div>
 
-    <button class="primary" onclick="startSession()">Start New Session</button>
-  </section>
+  <button class="primary" onclick="startSession()">Start New Session</button>
+</section>
 
-  <section id="crush" class="screen">
-    <div class="crushTop">
-      <div>
-        <h2>Crush Console</h2>
-        <div id="sessionBanner">No active session</div>
+<section id="crush" class="screen">
+  <div class="crushTop">
+    <div><h2>Crush Console</h2><div id="sessionBanner">No active session</div></div>
+    <div class="headCount"><span id="totalCount">0</span><small>head recorded</small></div>
+    <button class="finishBtn" onclick="finishSession()">Finish & Save</button>
+  </div>
+  <div id="screenFlash" class="screenFlash"></div>
+  <div class="consoleGrid">
+    <section class="currentAnimal">
+      <div class="animalNo">ANIMAL #<span id="currentAnimalNo">1</span></div>
+      <div id="megaPrompt" class="megaPrompt">START SESSION</div>
+      <input id="quickInput" class="quickInput" autofocus autocomplete="off" placeholder="Use keyboard only" />
+      <div id="fieldStack" class="fieldStack"></div>
+      <div id="status" class="status">Ready</div>
+      <div class="quickKeys">
+        <div><b>Class:</b> H Heifer | F 1st-lactation | W Wet Cow | D Dry Cow | C Cull</div>
+        <div><b>Pregnancy:</b> E Empty | 1-9 records P1-P9 automatically</div>
+        <div><b>BCS:</b> 1-5 only &nbsp; <b>Age:</b> 0-9 &nbsp; <b>F1:</b> Undo last</div>
       </div>
-      <div class="headCount">
-        <span id="totalCount">0</span>
-        <small>head recorded</small>
-      </div>
-      <button class="finishBtn" onclick="finishSession()">Finish & Save Session</button>
-    </div>
+    </section>
+    <aside class="sidePanel">
+      <h3>Live Session</h3>
+      <div class="stat"><span>Pregnant</span><b id="pregnantCount">0</b></div>
+      <div class="stat"><span>Empty</span><b id="emptyCount">0</b></div>
+      <div class="stat"><span>Preg %</span><b id="pregPercent">0%</b></div>
+      <h3>Draft Board</h3><div id="draftTallies"></div>
+      <h3>Last 5 Recorded</h3><div id="lastAnimals"></div>
+    </aside>
+  </div>
+</section>
 
-    <div id="screenFlash" class="screenFlash"></div>
+<section id="mob" class="screen">
+  <h2>Mob Counts / Production Inputs</h2>
+  <div class="mobGrid">
+    <label>Station <input id="mobStation" /></label>
+    <label>Season / Year <input id="mobYear" type="number" /></label>
+    <label>Paddock <input id="mobPaddock" /></label>
+    <label>Mob Name <input id="mobMobName" /></label>
+    <label>Class <select id="mobClass"><option>Wet cows</option><option>Dry cows</option><option>Maiden heifers</option><option>First lactation heifers</option><option>Mixed</option></select></label>
+    <label>Females joined / exposed <input id="joinedCount" type="number" /></label>
+    <label>Females preg tested <input id="testedCount" type="number" /></label>
+    <label>Pregnant at test <input id="pregnantAtTest" type="number" /></label>
+    <label>Calves branded / marked <input id="calvesCount" type="number" /></label>
+    <label>Weaners weaned <input id="weanersCount" type="number" /></label>
+    <label>Mustering/calving disruption? <select id="mobDisruption"><option>Unknown</option><option>No obvious disruption</option><option>Moderate disruption</option><option>High disruption</option></select></label>
+    <label>Notes <input id="mobNotes" /></label>
+  </div>
+  <button class="primary" onclick="saveMobCounts()">Save Mob Counts</button>
+  <div id="mobKpiPreview" class="summary"></div>
+</section>
 
-    <div class="consoleGrid">
-      <section class="currentAnimal">
-        <div class="animalNo">ANIMAL #<span id="currentAnimalNo">1</span></div>
-        <div id="megaPrompt" class="megaPrompt">START SESSION</div>
+<section id="stations" class="screen">
+  <h2>Station / Year Folders</h2>
+  <button onclick="renderStationFolders()">Refresh</button>
+  <button onclick="clearAllData()" class="danger">Clear All Data</button>
+  <div id="stationFolders"></div>
+</section>
 
-        <input id="quickInput" class="quickInput" autofocus autocomplete="off" placeholder="Use keyboard only" />
-
-        <div id="fieldStack" class="fieldStack"></div>
-
-        <div id="status" class="status">Ready</div>
-
-        <div class="quickKeys">
-          <div><b>Class:</b> H Heifer | F 1st-lactation | W Wet Cow | D Dry Cow | C Cull</div>
-          <div><b>Pregnancy:</b> E Empty | 1-9 automatically records P1-P9</div>
-          <div><b>BCS:</b> 1-5 only &nbsp; <b>Age:</b> 0-9 &nbsp; <b>F1:</b> Undo last animal</div>
-          <div><b>No Enter between fields:</b> single-key fields advance automatically. Press Enter only to complete weight if weight is enabled.</div>
-        </div>
-      </section>
-
-      <aside class="sidePanel">
-        <h3>Live Session</h3>
-        <div class="stat"><span>Pregnant</span><b id="pregnantCount">0</b></div>
-        <div class="stat"><span>Empty</span><b id="emptyCount">0</b></div>
-        <div class="stat"><span>Preg %</span><b id="pregPercent">0%</b></div>
-
-        <h3>Draft Board</h3>
-        <div id="draftTallies"></div>
-
-        <h3>Last 5 Recorded</h3>
-        <div id="lastAnimals"></div>
-      </aside>
-    </div>
-  </section>
-
-  <section id="report" class="screen">
-    <div class="reportTop">
-      <h2>Station Manager Report</h2>
-      <div>
-        <button onclick="generateReports()">Refresh</button>
-        <button onclick="exportCSV()">Export CSV</button>
-        <button onclick="exportPDF()">Export PDF</button>
-      </div>
-    </div>
-
-    <div id="reportSummary" class="summary"></div>
-
-    <div class="managerGrid">
-      <div class="managerCard" id="cashCowCard"></div>
-      <div class="managerCard" id="riskCard"></div>
-    </div>
-
-    <div class="chartGrid">
-      <canvas id="classPregChart"></canvas>
-      <canvas id="stageClassChart"></canvas>
-      <canvas id="calvingPatternChart"></canvas>
-      <canvas id="bcsPregChart"></canvas>
-      <canvas id="heiferWeightBandChart"></canvas>
-      <canvas id="draftChart"></canvas>
-    </div>
-  </section>
-
-  <section id="sessions" class="screen">
-    <h2>Saved Sessions</h2>
-    <button onclick="startAnotherSession()">Start Another Session</button>
-    <button onclick="clearAllData()" class="danger">Clear All Data</button>
-    <div id="savedSessions"></div>
-  </section>
+<section id="report" class="screen">
+  <div class="reportTop">
+    <h2>Station Manager Report</h2>
+    <div><button onclick="generateReports()">Refresh</button><button onclick="exportCSV()">Export CSV</button><button onclick="exportPDF()">Export PDF</button></div>
+  </div>
+  <div id="reportSummary" class="summary"></div>
+  <div class="managerGrid">
+    <div class="managerCard" id="stationProfileCard"></div>
+    <div class="managerCard" id="cashCowCard"></div>
+    <div class="managerCard" id="riskCard"></div>
+  </div>
+  <div class="chartGrid">
+    <canvas id="classPregChart"></canvas><canvas id="stageClassChart"></canvas><canvas id="calvingPatternChart"></canvas>
+    <canvas id="bcsPregChart"></canvas><canvas id="heiferWeightBandChart"></canvas><canvas id="productionKpiChart"></canvas>
+    <canvas id="stationTrendChart"></canvas>
+  </div>
+</section>
 </main>
-
 <script src="app.js"></script>
 </body>
 </html>
