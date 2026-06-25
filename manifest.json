@@ -1,1 +1,15 @@
-{"name":"Central Vets Station Stats","short_name":"Station Stats","start_url":"index.html","display":"standalone","background_color":"#0b1f33","theme_color":"#0b1f33","icons":[{"src":"image.png","sizes":"512x512","type":"image/png"}]}
+{
+  "name": "Central Vets Station Stats",
+  "short_name": "Station Stats",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#071c2f",
+  "theme_color": "#071c2f",
+  "icons": [
+    {
+      "src": "image.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -12,67 +12,131 @@
 <body>
 <header>
   <img src="image.png" alt="Central Veterinary Surgery Logo" />
-  <div><h1>Central Vets Station Stats</h1><p>Built by vets. Designed for stations.</p></div>
+  <div>
+    <h1>Central Vets Station Stats</h1>
+    <p>Built by vets. Designed for stations.</p>
+  </div>
 </header>
+
 <nav>
   <button onclick="showScreen('setup')">Session Setup</button>
   <button onclick="showScreen('crush')">Crush Console</button>
   <button onclick="showScreen('report'); generateCharts();">Reports</button>
 </nav>
+
 <main>
-<section id="setup" class="screen active">
-  <h2>Session Builder</h2>
-  <div class="grid">
-    <label>Station Name <input id="stationName" /></label>
-    <label>Paddock Name <input id="paddockName" /></label>
-    <label>Operator/Vet <input id="operatorName" /></label>
-    <label>Session Date <input id="sessionDate" type="date" /></label>
-  </div>
-  <h3>Recording Points</h3>
-  <div class="checks">
-    <label><input type="checkbox" id="recordClass" checked /> Class per animal</label>
-    <label><input type="checkbox" id="recordAge" checked /> Age/brand number</label>
-    <label><input type="checkbox" id="recordBCS" checked /> BCS</label>
-    <label><input type="checkbox" id="recordPreg" checked /> Pregnancy</label>
-    <label><input type="checkbox" id="recordWeight" /> Weight</label>
-    <label><input type="checkbox" id="recordWetDry" /> Wet/Dry</label>
-  </div>
-  <h3>Fixed Session Values</h3>
-  <p>If a field is not ticked above, this fixed value is saved automatically for every animal.</p>
-  <div class="grid">
-    <label>Fixed Class
-      <select id="fixedClass">
-        <option value="">None</option><option value="H">Maiden Heifer</option><option value="F">First Lactation Heifer</option><option value="W">Wet Cow</option><option value="D">Dry Cow</option><option value="C">Cull for Age Cow</option>
-      </select>
-    </label>
-    <label>Fixed Wet/Dry
-      <select id="fixedWetDry"><option value="">None</option><option value="Wet">Wet</option><option value="Dry">Dry</option></select>
-    </label>
-  </div>
-  <button class="primary" onclick="startSession()">Start Session</button>
-</section>
-<section id="crush" class="screen">
-  <div class="crushHeader"><div><h2>Crush Console</h2><div id="sessionBanner">No active session</div></div><div class="headCount"><span id="totalCount">0</span><small>head recorded</small></div></div>
-  <div class="consoleGrid">
-    <div class="animalCard">
-      <div class="animalTitle">Current Animal #<span id="currentAnimalNo">1</span></div>
-      <div id="fieldRows" class="fieldRows"></div>
-      <div class="nextPrompt" id="nextPrompt">START SESSION FIRST</div>
-      <input id="guidedInput" class="guidedInput" autofocus autocomplete="off" placeholder="Type value then Enter" />
-      <div id="status" class="status">Ready</div>
-      <div class="helpText"><b>Keys:</b> H heifer, F first lactation, W wet cow, D dry cow, C cull. Pregnancy: E empty, or 1-9 for P1-P9. BCS 1-5. Age 0-9. Weight as number. <b>F1</b> undo last animal. <b>Backspace</b> clears last field.</div>
+  <section id="setup" class="screen active">
+    <h2>Session Builder</h2>
+
+    <div class="grid">
+      <label>Station Name <input id="stationName" /></label>
+      <label>Paddock Name <input id="paddockName" /></label>
+      <label>Operator/Vet <input id="operatorName" /></label>
+      <label>Session Date <input id="sessionDate" type="date" /></label>
     </div>
-    <div class="livePanel">
-      <h3>Live Session</h3><div class="statLine"><span>Pregnant</span><b id="pregnantCount">0</b></div><div class="statLine"><span>Empty</span><b id="emptyCount">0</b></div><div class="statLine"><span>Preg %</span><b id="pregPercent">0%</b></div>
-      <h3>Draft Tally</h3><div id="draftTallies" class="draftTallies"></div>
-      <h3>Last 5 Animals</h3><div id="lastAnimals" class="lastAnimals"></div>
+
+    <h3>Recording Points</h3>
+    <div class="checks">
+      <label><input type="checkbox" id="recordClass" checked /> Class per animal</label>
+      <label><input type="checkbox" id="recordAge" checked /> Age/brand number</label>
+      <label><input type="checkbox" id="recordBCS" checked /> BCS</label>
+      <label><input type="checkbox" id="recordPreg" checked /> Pregnancy</label>
+      <label><input type="checkbox" id="recordWeight" /> Weight</label>
+      <label><input type="checkbox" id="recordWetDry" /> Wet/Dry</label>
     </div>
-  </div>
-</section>
-<section id="report" class="screen">
-  <h2>End of Session Report</h2>
-  <button onclick="generateCharts()">Refresh Report</button><button onclick="exportCSV()">Export CSV</button><button onclick="exportPDF()">Export PDF</button><button onclick="clearAllData()" class="danger">Clear All Data</button>
-  <div id="reportSummary" class="summary"></div>
-  <div class="chartGrid"><canvas id="pregChart"></canvas><canvas id="bcsChart"></canvas><canvas id="draftChart"></canvas><canvas id="classChart"></canvas><canvas id="heiferWeightPregChart"></canvas><canvas id="bcsPregChart"></canvas></div>
-</section>
-</main><script src="app.js"></script></body></html>
+
+    <h3>Fixed Session Values</h3>
+    <p>If a field is not ticked above, this fixed value is saved automatically for every animal.</p>
+    <div class="grid">
+      <label>Fixed Class
+        <select id="fixedClass">
+          <option value="">None</option>
+          <option value="H">Maiden Heifer</option>
+          <option value="F">First Lactation Heifer</option>
+          <option value="W">Wet Cow</option>
+          <option value="D">Dry Cow</option>
+          <option value="C">Cull for Age Cow</option>
+        </select>
+      </label>
+      <label>Fixed Wet/Dry
+        <select id="fixedWetDry">
+          <option value="">None</option>
+          <option value="Wet">Wet</option>
+          <option value="Dry">Dry</option>
+        </select>
+      </label>
+    </div>
+
+    <button class="primary" onclick="startSession()">Start Session</button>
+  </section>
+
+  <section id="crush" class="screen">
+    <div class="crushTop">
+      <div>
+        <h2>Crush Console</h2>
+        <div id="sessionBanner">No active session</div>
+      </div>
+      <div class="headCount">
+        <span id="totalCount">0</span>
+        <small>head recorded</small>
+      </div>
+    </div>
+
+    <div id="screenFlash" class="screenFlash"></div>
+
+    <div class="consoleGrid">
+      <section class="currentAnimal">
+        <div class="animalNo">ANIMAL #<span id="currentAnimalNo">1</span></div>
+        <div id="megaPrompt" class="megaPrompt">START SESSION</div>
+
+        <input id="quickInput" class="quickInput" autofocus autocomplete="off" placeholder="Press key or type value, then Enter" />
+
+        <div id="fieldStack" class="fieldStack"></div>
+
+        <div id="status" class="status">Ready</div>
+
+        <div class="quickKeys">
+          <div><b>Class:</b> H Heifer | F First Lac | W Wet Cow | D Dry Cow | C Cull</div>
+          <div><b>Preg:</b> E Empty | 1-9 = P1-P9</div>
+          <div><b>Shortcuts:</b> F1 Undo last | Backspace clears last field</div>
+        </div>
+      </section>
+
+      <aside class="sidePanel">
+        <h3>Live Session</h3>
+        <div class="stat"><span>Pregnant</span><b id="pregnantCount">0</b></div>
+        <div class="stat"><span>Empty</span><b id="emptyCount">0</b></div>
+        <div class="stat"><span>Preg %</span><b id="pregPercent">0%</b></div>
+
+        <h3>Draft Board</h3>
+        <div id="draftTallies"></div>
+
+        <h3>Last 5 Recorded</h3>
+        <div id="lastAnimals"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="report" class="screen">
+    <h2>End of Session Report</h2>
+    <button onclick="generateCharts()">Refresh Report</button>
+    <button onclick="exportCSV()">Export CSV</button>
+    <button onclick="exportPDF()">Export PDF</button>
+    <button onclick="clearAllData()" class="danger">Clear All Data</button>
+
+    <div id="reportSummary" class="summary"></div>
+
+    <div class="chartGrid">
+      <canvas id="pregChart"></canvas>
+      <canvas id="bcsChart"></canvas>
+      <canvas id="draftChart"></canvas>
+      <canvas id="classChart"></canvas>
+      <canvas id="heiferWeightPregChart"></canvas>
+      <canvas id="bcsPregChart"></canvas>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
