@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Central Vets Station Stats</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
@@ -21,7 +21,8 @@
 <nav>
   <button onclick="showScreen('setup')">Session Setup</button>
   <button onclick="showScreen('crush')">Crush Console</button>
-  <button onclick="showScreen('report'); generateCharts();">Reports</button>
+  <button onclick="showScreen('report'); generateReports();">Reports</button>
+  <button onclick="showScreen('sessions'); renderSavedSessions();">Saved Sessions</button>
 </nav>
 
 <main>
@@ -39,8 +40,8 @@
     <div class="checks">
       <label><input type="checkbox" id="recordClass" checked /> Class per animal</label>
       <label><input type="checkbox" id="recordAge" checked /> Age/brand number</label>
-      <label><input type="checkbox" id="recordBCS" checked /> BCS</label>
-      <label><input type="checkbox" id="recordPreg" checked /> Pregnancy</label>
+      <label><input type="checkbox" id="recordBCS" checked /> BCS 1-5</label>
+      <label><input type="checkbox" id="recordPreg" checked /> Pregnancy P1-P9 / Empty</label>
       <label><input type="checkbox" id="recordWeight" /> Weight</label>
       <label><input type="checkbox" id="recordWetDry" /> Wet/Dry</label>
     </div>
@@ -67,7 +68,7 @@
       </label>
     </div>
 
-    <button class="primary" onclick="startSession()">Start Session</button>
+    <button class="primary" onclick="startSession()">Start New Session</button>
   </section>
 
   <section id="crush" class="screen">
@@ -80,6 +81,7 @@
         <span id="totalCount">0</span>
         <small>head recorded</small>
       </div>
+      <button class="finishBtn" onclick="finishSession()">Finish & Save Session</button>
     </div>
 
     <div id="screenFlash" class="screenFlash"></div>
@@ -89,16 +91,17 @@
         <div class="animalNo">ANIMAL #<span id="currentAnimalNo">1</span></div>
         <div id="megaPrompt" class="megaPrompt">START SESSION</div>
 
-        <input id="quickInput" class="quickInput" autofocus autocomplete="off" placeholder="Press key or type value, then Enter" />
+        <input id="quickInput" class="quickInput" autofocus autocomplete="off" placeholder="Use keyboard only" />
 
         <div id="fieldStack" class="fieldStack"></div>
 
         <div id="status" class="status">Ready</div>
 
         <div class="quickKeys">
-          <div><b>Class:</b> H Heifer | F First Lac | W Wet Cow | D Dry Cow | C Cull</div>
-          <div><b>Preg:</b> E Empty | 1-9 = P1-P9</div>
-          <div><b>Shortcuts:</b> F1 Undo last | Backspace clears last field</div>
+          <div><b>Class:</b> H Heifer | F 1st-lactation | W Wet Cow | D Dry Cow | C Cull</div>
+          <div><b>Pregnancy:</b> E Empty | 1-9 automatically records P1-P9</div>
+          <div><b>BCS:</b> 1-5 only &nbsp; <b>Age:</b> 0-9 &nbsp; <b>F1:</b> Undo last animal</div>
+          <div><b>No Enter between fields:</b> single-key fields advance automatically. Press Enter only to complete weight if weight is enabled.</div>
         </div>
       </section>
 
@@ -118,22 +121,37 @@
   </section>
 
   <section id="report" class="screen">
-    <h2>End of Session Report</h2>
-    <button onclick="generateCharts()">Refresh Report</button>
-    <button onclick="exportCSV()">Export CSV</button>
-    <button onclick="exportPDF()">Export PDF</button>
-    <button onclick="clearAllData()" class="danger">Clear All Data</button>
+    <div class="reportTop">
+      <h2>Station Manager Report</h2>
+      <div>
+        <button onclick="generateReports()">Refresh</button>
+        <button onclick="exportCSV()">Export CSV</button>
+        <button onclick="exportPDF()">Export PDF</button>
+      </div>
+    </div>
 
     <div id="reportSummary" class="summary"></div>
 
-    <div class="chartGrid">
-      <canvas id="pregChart"></canvas>
-      <canvas id="bcsChart"></canvas>
-      <canvas id="draftChart"></canvas>
-      <canvas id="classChart"></canvas>
-      <canvas id="heiferWeightPregChart"></canvas>
-      <canvas id="bcsPregChart"></canvas>
+    <div class="managerGrid">
+      <div class="managerCard" id="cashCowCard"></div>
+      <div class="managerCard" id="riskCard"></div>
     </div>
+
+    <div class="chartGrid">
+      <canvas id="classPregChart"></canvas>
+      <canvas id="stageClassChart"></canvas>
+      <canvas id="calvingPatternChart"></canvas>
+      <canvas id="bcsPregChart"></canvas>
+      <canvas id="heiferWeightBandChart"></canvas>
+      <canvas id="draftChart"></canvas>
+    </div>
+  </section>
+
+  <section id="sessions" class="screen">
+    <h2>Saved Sessions</h2>
+    <button onclick="startAnotherSession()">Start Another Session</button>
+    <button onclick="clearAllData()" class="danger">Clear All Data</button>
+    <div id="savedSessions"></div>
   </section>
 </main>
 
