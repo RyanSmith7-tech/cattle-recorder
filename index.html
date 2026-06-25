@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Central Veterinary Surgery - Cattle Recorder</title>
+  <title>Central Vets Station Stats</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,115 +12,67 @@
 <body>
 <header>
   <img src="image.png" alt="Central Veterinary Surgery Logo" />
-  <div>
-    <h1>Central Veterinary Surgery</h1>
-    <p>Cattle Pregnancy Recording System</p>
-  </div>
+  <div><h1>Central Vets Station Stats</h1><p>Built by vets. Designed for stations.</p></div>
 </header>
-
 <nav>
   <button onclick="showScreen('setup')">Session Setup</button>
-  <button onclick="showScreen('crush')">Crush Entry</button>
+  <button onclick="showScreen('crush')">Crush Console</button>
   <button onclick="showScreen('report'); generateCharts();">Reports</button>
 </nav>
-
 <main>
-  <section id="setup" class="screen active">
-    <h2>Session Builder</h2>
-
-    <div class="grid">
-      <label>Station Name <input id="stationName" /></label>
-      <label>Paddock Name <input id="paddockName" /></label>
-      <label>Operator/Vet <input id="operatorName" /></label>
-      <label>Session Date <input id="sessionDate" type="date" /></label>
+<section id="setup" class="screen active">
+  <h2>Session Builder</h2>
+  <div class="grid">
+    <label>Station Name <input id="stationName" /></label>
+    <label>Paddock Name <input id="paddockName" /></label>
+    <label>Operator/Vet <input id="operatorName" /></label>
+    <label>Session Date <input id="sessionDate" type="date" /></label>
+  </div>
+  <h3>Recording Points</h3>
+  <div class="checks">
+    <label><input type="checkbox" id="recordClass" checked /> Class per animal</label>
+    <label><input type="checkbox" id="recordAge" checked /> Age/brand number</label>
+    <label><input type="checkbox" id="recordBCS" checked /> BCS</label>
+    <label><input type="checkbox" id="recordPreg" checked /> Pregnancy</label>
+    <label><input type="checkbox" id="recordWeight" /> Weight</label>
+    <label><input type="checkbox" id="recordWetDry" /> Wet/Dry</label>
+  </div>
+  <h3>Fixed Session Values</h3>
+  <p>If a field is not ticked above, this fixed value is saved automatically for every animal.</p>
+  <div class="grid">
+    <label>Fixed Class
+      <select id="fixedClass">
+        <option value="">None</option><option value="H">Maiden Heifer</option><option value="F">First Lactation Heifer</option><option value="W">Wet Cow</option><option value="D">Dry Cow</option><option value="C">Cull for Age Cow</option>
+      </select>
+    </label>
+    <label>Fixed Wet/Dry
+      <select id="fixedWetDry"><option value="">None</option><option value="Wet">Wet</option><option value="Dry">Dry</option></select>
+    </label>
+  </div>
+  <button class="primary" onclick="startSession()">Start Session</button>
+</section>
+<section id="crush" class="screen">
+  <div class="crushHeader"><div><h2>Crush Console</h2><div id="sessionBanner">No active session</div></div><div class="headCount"><span id="totalCount">0</span><small>head recorded</small></div></div>
+  <div class="consoleGrid">
+    <div class="animalCard">
+      <div class="animalTitle">Current Animal #<span id="currentAnimalNo">1</span></div>
+      <div id="fieldRows" class="fieldRows"></div>
+      <div class="nextPrompt" id="nextPrompt">START SESSION FIRST</div>
+      <input id="guidedInput" class="guidedInput" autofocus autocomplete="off" placeholder="Type value then Enter" />
+      <div id="status" class="status">Ready</div>
+      <div class="helpText"><b>Keys:</b> H heifer, F first lactation, W wet cow, D dry cow, C cull. Pregnancy: E empty, or 1-9 for P1-P9. BCS 1-5. Age 0-9. Weight as number. <b>F1</b> undo last animal. <b>Backspace</b> clears last field.</div>
     </div>
-
-    <h3>Recording Points</h3>
-    <div class="checks">
-      <label><input type="checkbox" id="recordClass" checked /> Record class per animal</label>
-      <label><input type="checkbox" id="recordAge" checked /> Record age/brand number</label>
-      <label><input type="checkbox" id="recordBCS" checked /> Record BCS</label>
-      <label><input type="checkbox" id="recordPreg" checked /> Record pregnancy</label>
-      <label><input type="checkbox" id="recordWeight" /> Record weight</label>
-      <label><input type="checkbox" id="recordWetDry" /> Record wet/dry</label>
+    <div class="livePanel">
+      <h3>Live Session</h3><div class="statLine"><span>Pregnant</span><b id="pregnantCount">0</b></div><div class="statLine"><span>Empty</span><b id="emptyCount">0</b></div><div class="statLine"><span>Preg %</span><b id="pregPercent">0%</b></div>
+      <h3>Draft Tally</h3><div id="draftTallies" class="draftTallies"></div>
+      <h3>Last 5 Animals</h3><div id="lastAnimals" class="lastAnimals"></div>
     </div>
-
-    <h3>Fixed Session Values</h3>
-    <p>If a field is not recorded per animal, this value is saved automatically to every animal.</p>
-    <div class="grid">
-      <label>Fixed Class
-        <select id="fixedClass">
-          <option value="">None</option>
-          <option value="H">Maiden Heifer</option>
-          <option value="F">First Lactation Heifer</option>
-          <option value="W">Wet Cow</option>
-          <option value="D">Dry Cow</option>
-          <option value="C">Cull for Age Cow</option>
-        </select>
-      </label>
-      <label>Fixed Wet/Dry
-        <select id="fixedWetDry">
-          <option value="">None</option>
-          <option value="Wet">Wet</option>
-          <option value="Dry">Dry</option>
-        </select>
-      </label>
-    </div>
-
-    <h3>Draft Rules</h3>
-    <p>Default rules are editable later in code. This version includes common crush-side drafts.</p>
-    <div class="draftBox">
-      <div>Draft 1: Empty heifers</div>
-      <div>Draft 2: P1-P3 heifers</div>
-      <div>Draft 3: P4-P6 heifers</div>
-      <div>Draft 4: P7-P9 heifers</div>
-      <div>Draft 5: Cull for age cows</div>
-      <div>Draft 6: Other cows</div>
-    </div>
-
-    <button class="primary" onclick="startSession()">Start / Save Session</button>
-  </section>
-
-  <section id="crush" class="screen">
-    <h2>Keyboard Crush Entry</h2>
-    <div id="sessionBanner">No active session</div>
-
-    <input id="crushInput" class="crushInput" autofocus placeholder="Example: H 4 3 P6 420 W then Enter" />
-
-    <div id="status" class="status">Ready</div>
-
-    <div class="bigStats">
-      <div>Total: <span id="totalCount">0</span></div>
-      <div>Last Draft: <span id="lastDraft">-</span></div>
-    </div>
-
-    <h3>Keyboard Codes</h3>
-    <p>
-      Class: H maiden heifer, F first lactation heifer, W wet cow, D dry cow, C cull age cow.
-      Pregnancy: E or P1-P9. BCS: 1-5. Age: 0-9. Wet/Dry: WET or DRY, or W/D.
-    </p>
-  </section>
-
-  <section id="report" class="screen">
-    <h2>End of Session Report</h2>
-    <button onclick="generateCharts()">Refresh Report</button>
-    <button onclick="exportCSV()">Export CSV</button>
-    <button onclick="exportPDF()">Export PDF</button>
-    <button onclick="clearAllData()" class="danger">Clear All Data</button>
-
-    <div id="reportSummary" class="summary"></div>
-
-    <div class="chartGrid">
-      <canvas id="pregChart"></canvas>
-      <canvas id="bcsChart"></canvas>
-      <canvas id="draftChart"></canvas>
-      <canvas id="classChart"></canvas>
-      <canvas id="heiferWeightPregChart"></canvas>
-      <canvas id="bcsPregChart"></canvas>
-    </div>
-  </section>
-</main>
-
-<script src="app.js"></script>
-</body>
-</html>
+  </div>
+</section>
+<section id="report" class="screen">
+  <h2>End of Session Report</h2>
+  <button onclick="generateCharts()">Refresh Report</button><button onclick="exportCSV()">Export CSV</button><button onclick="exportPDF()">Export PDF</button><button onclick="clearAllData()" class="danger">Clear All Data</button>
+  <div id="reportSummary" class="summary"></div>
+  <div class="chartGrid"><canvas id="pregChart"></canvas><canvas id="bcsChart"></canvas><canvas id="draftChart"></canvas><canvas id="classChart"></canvas><canvas id="heiferWeightPregChart"></canvas><canvas id="bcsPregChart"></canvas></div>
+</section>
+</main><script src="app.js"></script></body></html>
