@@ -18,6 +18,7 @@
 </header>
 
 <nav>
+  <button onclick="App.show('home')">Home</button>
   <button onclick="App.show('profile')">Station Profile</button>
   <button onclick="App.show('session')">Session Builder</button>
   <button onclick="App.show('crush')">Crush Console</button>
@@ -29,7 +30,18 @@
 </nav>
 
 <main>
-<section id="profile" class="screen active">
+<section id="home" class="screen active">
+  <h2>Yard Day Dashboard</h2>
+  <div class="homeGrid">
+    <button class="homeTile" onclick="App.quickStart('preg')"><b>Preg test session</b><span>Fast crush-side recording + drafts</span></button>
+    <button class="homeTile" onclick="App.quickStart('mixed')"><b>Mixed mob tally</b><span>Enter totals for calves, weaners, cows, bulls</span></button>
+    <button class="homeTile" onclick="App.quickStart('heifers')"><b>Heifer preg test</b><span>Weight, BCS, preg stage + puberty predictor</span></button>
+    <button class="homeTile" onclick="App.quickStart('repeat')"><b>Repeat last setup</b><span>Use the previous station, mob and draft template</span></button>
+  </div>
+  <div id="homeOut" class="panel"></div>
+</section>
+
+<section id="profile" class="screen">
   <h2>Station Profile</h2>
   <div class="grid4">
     <label>Station name <input id="pfName"></label>
@@ -58,6 +70,19 @@
 
 <section id="session" class="screen">
   <h2>Session Builder</h2>
+  <div class="wizardPanel">
+    <h3>Quick setup</h3>
+    <div class="buttonRow">
+      <button onclick="App.sessionPreset('cowPreg')">Cow preg test</button>
+      <button onclick="App.sessionPreset('heiferPreg')">Heifer preg + weights</button>
+      <button onclick="App.sessionPreset('mixedTally')">Mixed mob tally</button>
+      <button onclick="App.copyLastSessionSetup()">Copy last session</button>
+      <button onclick="App.saveSessionTemplate()">Save setup as template</button>
+    </div>
+    <label>Saved session template <select id="sessionTemplate" onchange="App.loadSessionTemplate()"><option value="">None</option></select></label>
+    <p class="muted">Aim: select a preset, enter station/paddock/mob, check draft pens, then Start Session.</p>
+  </div>
+
   <div class="grid4">
     <label>Station <input id="ssStation"></label>
     <label>Season/year <input id="ssYear" type="number"></label>
@@ -66,6 +91,7 @@
     <label>Operator/vet <input id="ssOperator"></label>
     <label>Session date <input id="ssDate" type="date" onchange="App.renderCalvingGuide()"></label>
   </div>
+  <div id="recentStationButtons" class="buttonRow"></div>
 
   <h3>Recording points</h3>
   <div class="checks">
@@ -139,9 +165,26 @@
 
 <section id="tally" class="screen">
   <h2>Mixed Mob Yard Tally</h2>
-  <div class="tallyButtons">
-    <button onclick="App.addTally('Calves')">+ Calves</button><button onclick="App.addTally('Weaners')">+ Weaners</button><button onclick="App.addTally('Maiden heifers')">+ Maiden heifers</button><button onclick="App.addTally('First-lactation heifers')">+ 1st-lactation heifers</button><button onclick="App.addTally('Wet cows')">+ Wet cows</button><button onclick="App.addTally('Dry cows')">+ Dry cows</button><button onclick="App.addTally('Cull cows')">+ Cull cows</button><button onclick="App.addTally('Speyed cows')">+ Speyed cows</button><button onclick="App.addTally('Bulls')">+ Bulls</button>
+  <h3>Enter total head counted by class</h3>
+  <p>Type the total count for each class. The + buttons are still available if you want to live-tally, but they are no longer required.</p>
+  <div class="tallyEntryGrid">
+    <label>Calves <input id="ytCalves" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
+    <label>Weaners <input id="ytWeaners" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
+    <label>Maiden heifers <input id="ytMaidenHeifers" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
+    <label>First-lactation heifers <input id="ytFirstLactationHeifers" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
+    <label>Wet cows <input id="ytWetCows" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
+    <label>Dry cows <input id="ytDryCows" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
+    <label>Cull cows <input id="ytCullCows" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
+    <label>Speyed cows <input id="ytSpeyedCows" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
+    <label>Bulls <input id="ytBulls" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
   </div>
+
+  <details>
+    <summary>Optional live tally buttons</summary>
+    <div class="tallyButtons">
+      <button onclick="App.addTally('Calves')">+ Calves</button><button onclick="App.addTally('Weaners')">+ Weaners</button><button onclick="App.addTally('Maiden heifers')">+ Maiden heifers</button><button onclick="App.addTally('First-lactation heifers')">+ 1st-lactation heifers</button><button onclick="App.addTally('Wet cows')">+ Wet cows</button><button onclick="App.addTally('Dry cows')">+ Dry cows</button><button onclick="App.addTally('Cull cows')">+ Cull cows</button><button onclick="App.addTally('Speyed cows')">+ Speyed cows</button><button onclick="App.addTally('Bulls')">+ Bulls</button>
+    </div>
+  </details>
   <div class="grid4">
     <label>Station <input id="tyStation"></label><label>Year <input id="tyYear" type="number"></label><label>Paddock <input id="tyPaddock"></label><label>Mob <input id="tyMob"></label><label>Females joined/exposed <input id="tyJoined" type="number"></label><label>Females preg tested <input id="tyTested" type="number"></label><label>Pregnant at test <input id="tyPregnant" type="number"></label><label>Notes <input id="tyNotes"></label>
   </div>
@@ -225,8 +268,8 @@
 <section id="report" class="screen">
   <div class="reportHeader"><h2>Station Manager Report</h2><div><button onclick="App.renderReport()">Refresh</button><button onclick="App.exportCSV()">CSV</button></div></div>
   <div id="reportSummary" class="panel"></div>
-  <div class="reportCards"><div id="profileCard" class="panel"></div><div id="kpiCard" class="panel"></div><div id="forecastCard" class="panel"></div><div id="advisoryCard" class="panel"></div><div id="businessCard" class="panel"></div><div id="bullPowerCard" class="panel"></div></div>
-  <div class="charts"><canvas id="chartPregClass"></canvas><canvas id="chartStage"></canvas><canvas id="chartSeason"></canvas><canvas id="chartBCS"></canvas><canvas id="chartHeiferWeight"></canvas><canvas id="chartCalving"></canvas><canvas id="chartProjection"></canvas><canvas id="chartProduction"></canvas><canvas id="chartBenchmark"></canvas><canvas id="chartWeanerProd"></canvas><canvas id="chartAnnualTrend"></canvas></div>
+  <div class="reportCards"><div id="profileCard" class="panel"></div><div id="kpiCard" class="panel"></div><div id="forecastCard" class="panel"></div><div id="advisoryCard" class="panel"></div><div id="businessCard" class="panel"></div><div id="bullPowerCard" class="panel"></div><div id="mergedTallyCard" class="panel"></div></div>
+  <div class="charts"><canvas id="chartPregClass"></canvas><canvas id="chartStage"></canvas><canvas id="chartSeason"></canvas><canvas id="chartBCS"></canvas><canvas id="chartHeiferWeight"></canvas><canvas id="chartCalving"></canvas><canvas id="chartProjection"></canvas><canvas id="chartProduction"></canvas><canvas id="chartBenchmark"></canvas><canvas id="chartWeanerProd"></canvas><canvas id="chartAnnualTrend"></canvas><canvas id="chartMergedTally"></canvas></div>
 </section>
 </main>
 <script src="app.js"></script>
