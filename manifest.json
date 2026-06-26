@@ -1,6 +1,6 @@
 {
-  "name": "Central Vets Station Stats",
-  "short_name": "Station Stats",
+  "name": "Central Vets HerdIQ",
+  "short_name": "HerdIQ",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#071c2f",

@@ -1,199 +1,250 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-  <title>Central Vets Station Stats v3</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Central Vets HerdIQ</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <header>
-  <img src="image.png" onerror="this.style.display='none'">
+  <img src="image.png" onerror="this.style.display='none'" />
   <div>
-    <h1>Central Vets Station Stats</h1>
-    <p>Version 3.0 — Mob sheets + crush recording + advisory reports</p>
+    <h1>Central Vets HerdIQ</h1>
+    <p>Fast yard recording • Northern beef production intelligence</p>
   </div>
 </header>
 
 <nav>
-  <button onclick="App.show('home')">Home</button>
-  <button onclick="App.show('setup')">New Job</button>
-  <button onclick="App.show('mob')">Mob Sheet</button>
-  <button onclick="App.show('crush')">Crush Mode</button>
-  <button onclick="App.show('yard')">Yard Tally</button>
-  <button onclick="App.show('report')">Report</button>
-  <button onclick="App.show('history')">Station History</button>
+  <button onclick="HerdIQ.show('home')">Home</button>
+  <button onclick="HerdIQ.show('station')">Station</button>
+  <button onclick="HerdIQ.show('setup')">Session</button>
+  <button onclick="HerdIQ.show('crush')">Crush</button>
+  <button onclick="HerdIQ.show('endmob')">End of Mob</button>
+  <button onclick="HerdIQ.show('report')">Report</button>
+  <button onclick="HerdIQ.show('history')">History</button>
 </nav>
 
 <main>
 <section id="home" class="screen active">
-  <h2>Start Yard Day</h2>
-  <div class="homeGrid">
-    <button class="homeTile" onclick="App.quickJob('mob')"><b>Pregnancy Mob Sheet</b><span>Fast paper-sheet style totals: E, P1–P9, BCS, wet, CFA, speyed, bulls</span></button>
-    <button class="homeTile" onclick="App.quickJob('crush')"><b>Individual Crush Mode</b><span>Keyboard-only animal records with beep, auto-save and draft allocation</span></button>
-    <button class="homeTile" onclick="App.quickJob('yard')"><b>Yard Tally</b><span>Enter total calves, weaners, cows, bulls, speyed, culls</span></button>
-    <button class="homeTile" onclick="App.repeatLastJob()"><b>Repeat Last Job</b><span>Copy last station/paddock/mob and draft setup</span></button>
+  <h2>Yard Day Dashboard</h2>
+  <div class="home-grid">
+    <button class="tile" onclick="HerdIQ.quickStart('cow')">
+      <b>Preg test cows</b><span>Female crush recording only</span>
+    </button>
+    <button class="tile" onclick="HerdIQ.quickStart('heifer')">
+      <b>Heifer preg + weights</b><span>Preg, BCS, weight, puberty predictor</span>
+    </button>
+    <button class="tile" onclick="HerdIQ.quickStart('mob')">
+      <b>Mob summary sheet</b><span>Fast totals like your paper forms</span>
+    </button>
+    <button class="tile" onclick="HerdIQ.repeatLast()">
+      <b>Repeat last job</b><span>Copy station, paddock, mob and draft rules</span>
+    </button>
   </div>
-  <div id="homeOut" class="panel"></div>
+  <div id="homeSummary" class="panel"></div>
+</section>
+
+<section id="station" class="screen">
+  <h2>Station Profile</h2>
+  <div class="grid4">
+    <label>Station name <input id="stName" /></label>
+    <label>Manager <input id="stManager" /></label>
+    <label>Region <input id="stRegion" /></label>
+    <label>Country type
+      <select id="stCountry">
+        <option>Southern Forest</option>
+        <option>Central Forest</option>
+        <option>Northern Downs</option>
+        <option>Northern Forest</option>
+        <option>Mixed / Other</option>
+      </select>
+    </label>
+    <label>Total cattle <input id="stTotal" type="number" /></label>
+    <label>Breeders <input id="stBreeders" type="number" /></label>
+    <label>Heifer growth kg/year <input id="stHeiferGrowth" type="number" value="120" /></label>
+    <label>Cow growth kg/year <input id="stCowGrowth" type="number" value="60" /></label>
+    <label>Puberty target kg <input id="stPuberty" type="number" value="320" /></label>
+    <label>Target BCS <input id="stTargetBCS" type="number" step="0.1" value="3" /></label>
+    <label>Dry cow BCS change/year <input id="stDryBcsChange" type="number" step="0.1" value="0.2" /></label>
+    <label>Wet cow BCS change/year <input id="stWetBcsChange" type="number" step="0.1" value="-0.4" /></label>
+    <label>Wet season phosphorus
+      <select id="stPhos"><option>Unknown</option><option>Likely adequate</option><option>Likely marginal</option><option>Likely deficient</option></select>
+    </label>
+    <label>Dry season feed risk
+      <select id="stDryFeed"><option>Unknown</option><option>Low</option><option>Moderate</option><option>High</option></select>
+    </label>
+  </div>
+  <button class="primary" onclick="HerdIQ.saveStation()">Save Station</button>
+  <div id="stationPreview" class="panel"></div>
 </section>
 
 <section id="setup" class="screen">
-  <h2>New Job Setup</h2>
-  <div class="wizard">
-    <button onclick="App.setJobType('mob')">Mob Sheet</button>
-    <button onclick="App.setJobType('crush')">Crush Mode</button>
-    <button onclick="App.setJobType('yard')">Yard Tally</button>
-    <button onclick="App.repeatLastJob()">Copy last job</button>
+  <h2>Session Builder</h2>
+  <div class="preset-row">
+    <button onclick="HerdIQ.applyPreset('cow')">Cow preg preset</button>
+    <button onclick="HerdIQ.applyPreset('heifer')">Heifer preset</button>
+    <button onclick="HerdIQ.applyPreset('mob')">Mob sheet preset</button>
+    <button onclick="HerdIQ.repeatLast()">Copy last session</button>
   </div>
 
   <div class="grid4">
-    <label>Job type
-      <select id="jobType">
-        <option value="mob">Pregnancy mob sheet</option>
-        <option value="crush">Individual crush mode</option>
-        <option value="yard">Yard tally only</option>
+    <label>Session type
+      <select id="sessionType">
+        <option value="crush">Crush recording</option>
+        <option value="mob">Mob summary only</option>
       </select>
     </label>
-    <label>Station <input id="jobStation"></label>
-    <label>Year <input id="jobYear" type="number"></label>
-    <label>Date <input id="jobDate" type="date" onchange="App.renderCalvingGuide()"></label>
-    <label>Paddock <input id="jobPaddock"></label>
-    <label>Mob / group <input id="jobMob"></label>
-    <label>Vet <input id="jobVet" value="Ryan Smith"></label>
-    <label>Recorder <input id="jobRecorder"></label>
+    <label>Station <input id="sessionStation" onchange="HerdIQ.loadStationDefaults()" /></label>
+    <label>Year <input id="sessionYear" type="number" /></label>
+    <label>Date <input id="sessionDate" type="date" onchange="HerdIQ.renderCalvingGuide()" /></label>
+    <label>Paddock <input id="sessionPaddock" /></label>
+    <label>Mob name <input id="sessionMob" /></label>
+    <label>Vet <input id="sessionVet" value="Ryan Smith" /></label>
+    <label>Recorder <input id="sessionRecorder" /></label>
   </div>
 
-  <h3>Recording options</h3>
+  <h3>Crush recording fields</h3>
   <div class="checks">
-    <label><input type="checkbox" id="recClass" checked> Class</label>
-    <label><input type="checkbox" id="recAge" checked> Age/brand</label>
-    <label><input type="checkbox" id="recBCS" checked> BCS</label>
-    <label><input type="checkbox" id="recPreg" checked> Pregnancy</label>
-    <label><input type="checkbox" id="recWeight"> Weight</label>
-    <label><input type="checkbox" id="recWetDry"> Wet/Dry</label>
+    <label><input type="checkbox" id="fieldClass" checked /> Class</label>
+    <label><input type="checkbox" id="fieldAge" checked /> Age/brand</label>
+    <label><input type="checkbox" id="fieldPreg" checked /> Pregnancy</label>
+    <label><input type="checkbox" id="fieldBCS" checked /> BCS</label>
+    <label><input type="checkbox" id="fieldWeight" /> Weight</label>
   </div>
 
-  <h3>Draft Pens — optional</h3>
-  <div class="draftPanel">
+  <div class="grid4">
+    <label>Default class
+      <select id="defaultClass">
+        <option value="">Ask each animal</option>
+        <option value="H">Maiden heifer</option>
+        <option value="F">First-lactation heifer</option>
+        <option value="W">Wet cow</option>
+        <option value="D">Dry cow</option>
+        <option value="C">Cull cow</option>
+        <option value="S">Speyed cow</option>
+      </select>
+    </label>
+    <label>Weight prompt
+      <select id="weightMode">
+        <option value="off">No weights</option>
+        <option value="heifers">Heifers only</option>
+        <option value="all">All animals</option>
+      </select>
+    </label>
+  </div>
+
+  <h3>Draft rules</h3>
+  <div class="draft-builder">
     <div>
-      <div class="buttonRow">
-        <button onclick="App.loadDraftExample('cows')">Cow preg draft</button>
-        <button onclick="App.loadDraftExample('heifers')">Heifer draft</button>
-        <button onclick="App.clearDraftPens()">Clear pens</button>
+      <div class="preset-row">
+        <button onclick="HerdIQ.draftPreset('cows')">Cow draft example</button>
+        <button onclick="HerdIQ.draftPreset('heifers')">Heifer draft example</button>
+        <button onclick="HerdIQ.clearDraftRules()">Clear draft rules</button>
       </div>
       <div class="grid2">
-        <label>Pen name <input id="draftName" placeholder="Pen 1 - Wet empty + dry P8-P9"></label>
-        <label>Wet/Dry <select id="draftWetDry"><option value="ANY">Any</option><option>Wet</option><option>Dry</option></select></label>
+        <label>Pen name <input id="draftName" placeholder="Pen 1 - Wet empty + dry P8-P9" /></label>
         <label>Classes
           <select id="draftClasses" multiple size="7">
-            <option value="H">Maiden heifers</option><option value="F">First-lactation heifers</option><option value="W">Wet cows</option>
-            <option value="D">Dry cows</option><option value="C">Cull cows</option><option value="S">Speyed cows</option><option value="B">Bulls</option>
+            <option value="H">Maiden heifers</option>
+            <option value="F">First-lactation heifers</option>
+            <option value="W">Wet cows</option>
+            <option value="D">Dry cows</option>
+            <option value="C">Cull cows</option>
+            <option value="S">Speyed cows</option>
+            <option value="B">Bulls</option>
           </select>
         </label>
         <label>Preg stages
           <select id="draftPregs" multiple size="10">
-            <option value="E">Empty</option><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option>
-            <option value="P4">P4</option><option value="P5">P5</option><option value="P6">P6</option><option value="P7">P7</option>
-            <option value="P8">P8</option><option value="P9">P9</option>
+            <option value="E">Empty</option>
+            <option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option>
+            <option value="P4">P4</option><option value="P5">P5</option><option value="P6">P6</option>
+            <option value="P7">P7</option><option value="P8">P8</option><option value="P9">P9</option>
           </select>
         </label>
       </div>
-      <button onclick="App.addDraftPen()">Add pen</button>
+      <button onclick="HerdIQ.addDraftRule()">Add draft rule</button>
     </div>
     <div>
-      <h4>Selected draft pens</h4>
-      <div id="draftPens"></div>
-      <div id="calvingGuide" class="miniPanel"></div>
+      <h4>Draft rules selected</h4>
+      <div id="draftRuleList"></div>
+      <div id="calvingGuide" class="mini-panel"></div>
     </div>
   </div>
 
-  <button class="primary bigButton" onclick="App.startJob()">Start Job</button>
-</section>
-
-<section id="mob" class="screen">
-  <div class="screenTop">
-    <h2>Pregnancy Mob Sheet</h2>
-    <button class="finish" onclick="App.finishJob()">Finish & Save</button>
-  </div>
-  <div id="mobBanner" class="banner"></div>
-  <div class="mobGrid">
-    <div class="panel">
-      <h3>Pregnancy stage totals</h3>
-      <div id="pregInputs" class="countGrid"></div>
-    </div>
-    <div class="panel">
-      <h3>BCS totals</h3>
-      <div id="bcsInputs" class="countGrid"></div>
-      <h3>Other tallies</h3>
-      <div id="otherInputs" class="countGrid"></div>
-    </div>
-  </div>
-  <div id="mobSummary" class="panel"></div>
+  <button class="primary big" onclick="HerdIQ.startSession()">Start Session</button>
 </section>
 
 <section id="crush" class="screen">
-  <div class="screenTop">
-    <h2>Crush Mode</h2>
-    <button class="finish" onclick="App.finishJob()">Finish & Save</button>
+  <div class="topline">
+    <h2>Crush Recorder</h2>
+    <button class="finish" onclick="HerdIQ.finishSession()">Finish Mob</button>
   </div>
-  <div class="console">
-    <div class="entryCard">
-      <div class="animalNo">ANIMAL #<span id="animalNo">1</span></div>
-      <div id="prompt" class="prompt">START JOB</div>
-      <input id="quickInput" class="quickInput" autocomplete="off" autofocus placeholder="Keyboard only">
-      <div id="fieldStack" class="fieldStack"></div>
-      <div id="status" class="status">Ready</div>
-      <div class="help">H/F/W/D/C/S/B • E or 1–9 for P1–P9 • BCS 1–5 • F1 undo last</div>
+  <div id="crushBanner" class="banner"></div>
+  <div class="crush-layout">
+    <div class="entry-card">
+      <div class="animal-number">Animal #<span id="animalNumber">1</span></div>
+      <div id="mainPrompt" class="main-prompt">START SESSION</div>
+      <input id="quickInput" class="quick-input" autocomplete="off" autofocus />
+      <div id="fieldStack" class="field-stack"></div>
+      <div id="saveStatus" class="save-status">Ready</div>
+      <div class="help">Class H/F/W/D/C/S • Age 0–9 • Pregnancy E or 1–9 • BCS 1–5 • F1 undo</div>
     </div>
-    <div class="liveCard">
-      <h3>Live Session</h3>
-      <div class="stat"><span>Recorded</span><b id="headCount">0</b></div>
-      <div class="stat"><span>Pregnant</span><b id="livePreg">0</b></div>
-      <div class="stat"><span>Preg %</span><b id="livePregPct">0%</b></div>
-      <h3>Draft board</h3><div id="draftBoard"></div>
-      <h3>Last 5</h3><div id="lastFive"></div>
+    <div class="side-card">
+      <h3>Live</h3>
+      <div class="stat"><span>Recorded</span><b id="liveRecorded">0</b></div>
+      <div class="stat"><span>Pregnant</span><b id="livePregnant">0</b></div>
+      <div class="stat"><span>Preg %</span><b id="livePregRate">0%</b></div>
+      <h3>Current draft</h3>
+      <div id="currentDraft" class="current-draft">-</div>
+      <h3>Draft board</h3>
+      <div id="draftBoard"></div>
+      <h3>Last 5</h3>
+      <div id="lastFive"></div>
     </div>
   </div>
 </section>
 
-<section id="yard" class="screen">
-  <div class="screenTop">
-    <h2>Yard Tally Totals</h2>
-    <button class="finish" onclick="App.finishJob()">Finish & Save</button>
+<section id="endmob" class="screen">
+  <div class="topline">
+    <h2>End of Mob Summary</h2>
+    <button class="finish" onclick="HerdIQ.finishSession()">Finish & Save</button>
   </div>
-  <div id="yardInputs" class="tallyEntryGrid"></div>
+  <p>Enter totals for cattle that were drafted off and not individually recorded.</p>
+  <div id="yardInputs" class="yard-grid"></div>
   <div id="yardSummary" class="panel"></div>
 </section>
 
 <section id="report" class="screen">
-  <div class="screenTop">
+  <div class="topline">
     <h2>Station Manager Report</h2>
-    <button onclick="App.exportCSV()">Export CSV</button>
+    <button onclick="HerdIQ.exportCSV()">Export CSV</button>
   </div>
-  <div id="reportSummary" class="panel"></div>
-  <div class="reportCards">
+  <div id="reportHeader" class="panel"></div>
+  <div class="report-grid">
     <div id="kpiCard" class="panel"></div>
     <div id="forecastCard" class="panel"></div>
     <div id="advisoryCard" class="panel"></div>
     <div id="mergedCard" class="panel"></div>
   </div>
-  <div class="charts">
-    <canvas id="chartPreg"></canvas>
-    <canvas id="chartBCS"></canvas>
-    <canvas id="chartCalving"></canvas>
-    <canvas id="chartMerged"></canvas>
-    <canvas id="chartDraft"></canvas>
-    <canvas id="chartBench"></canvas>
+  <div class="chart-grid">
+    <canvas id="pregChart"></canvas>
+    <canvas id="bcsChart"></canvas>
+    <canvas id="calvingChart"></canvas>
+    <canvas id="classChart"></canvas>
+    <canvas id="draftChart"></canvas>
+    <canvas id="benchmarkChart"></canvas>
   </div>
 </section>
 
 <section id="history" class="screen">
   <h2>Station History</h2>
-  <button onclick="App.renderHistory()">Refresh</button>
-  <button class="danger" onclick="App.clearAll()">Clear local data</button>
-  <div id="historyOut"></div>
+  <button onclick="HerdIQ.renderHistory()">Refresh</button>
+  <button class="danger" onclick="HerdIQ.clearAll()">Clear all local data</button>
+  <div id="historyList"></div>
 </section>
 </main>
 
