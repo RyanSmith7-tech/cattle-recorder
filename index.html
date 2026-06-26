@@ -22,6 +22,8 @@
   <button onclick="App.show('session')">Session Builder</button>
   <button onclick="App.show('crush')">Crush Console</button>
   <button onclick="App.show('tally')">Yard Tally</button>
+  <button onclick="App.show('annual')">Annual Schedule</button>
+  <button onclick="App.show('bullpower')">Bull Power</button>
   <button onclick="App.show('library')">Stations / Years</button>
   <button onclick="App.show('report')">Report</button>
 </nav>
@@ -148,6 +150,71 @@
   <button onclick="App.clearCurrentTally()">Clear current tally</button>
 </section>
 
+
+<section id="annual" class="screen">
+  <h2>Annual Livestock Schedule / BRICK-CashCow Inputs</h2>
+  <p>Use this at the final muster/end of cattle year. It feeds weaner production, missing cows, calf loss, AE and business KPI reporting.</p>
+  <div class="grid4">
+    <label>Station <input id="asStation"></label>
+    <label>Cattle year <input id="asYear" type="number"></label>
+    <label>Retained breeder cows <input id="asRetainedCows" type="number"></label>
+    <label>Females mated/joined <input id="asFemalesMated" type="number"></label>
+    <label>Pregnant at preg test <input id="asPregnant" type="number"></label>
+    <label>Weaners weaned <input id="asWeaners" type="number"></label>
+    <label>Average weaner weight kg <input id="asWeanerWeight" type="number"></label>
+    <label>Cows mustered this year <input id="asCowsMustered" type="number"></label>
+    <label>Cows retained last year <input id="asCowsLastYear" type="number"></label>
+    <label>Branders/calves marked <input id="asBranders" type="number"></label>
+    <label>Average cow weight kg <input id="asCowWeight" type="number"></label>
+    <label>Average cow weight last year kg <input id="asCowWeightLast" type="number"></label>
+    <label>Opening cattle capital $ <input id="asOpenCapital" type="number"></label>
+    <label>Closing cattle capital $ <input id="asCloseCapital" type="number"></label>
+    <label>Total beef income $ <input id="asIncome" type="number"></label>
+    <label>Variable costs $ <input id="asVarCosts" type="number"></label>
+    <label>Fixed costs $ <input id="asFixedCosts" type="number"></label>
+    <label>AE total estimate <input id="asAE" type="number"></label>
+    <label>Notes <input id="asNotes"></label>
+  </div>
+
+  <h3>Closing cattle numbers by class</h3>
+  <div class="grid4">
+    <label>Calves/weaners <input id="asClassWeaners" type="number"></label>
+    <label>Heifers rising 1 <input id="asClassH1" type="number"></label>
+    <label>Heifers rising 2 <input id="asClassH2" type="number"></label>
+    <label>Cows 3+ years <input id="asClassCows" type="number"></label>
+    <label>Speyed cows <input id="asClassSpeys" type="number"></label>
+    <label>Bulls <input id="asClassBulls" type="number"></label>
+    <label>Male weaners/yearlings <input id="asClassMales" type="number"></label>
+    <label>Avg sale/turnoff weight kg <input id="asSaleWeight" type="number"></label>
+  </div>
+
+  <button class="primary" onclick="App.saveAnnualSchedule()">Save Annual Schedule</button>
+  <button onclick="App.calculateAnnualPreview()">Preview KPIs</button>
+  <div id="annualOut" class="panel"></div>
+</section>
+
+<section id="bullpower" class="screen">
+  <h2>Bull Power Calculator</h2>
+  <p>Calculates bulls from mating demand and bull capacity, not just a fixed mating percentage.</p>
+  <div class="grid4">
+    <label>Station <input id="bpStation"></label>
+    <label>Year <input id="bpYear" type="number"></label>
+    <label>Females mated <input id="bpFemales" type="number" value="1000"></label>
+    <label>Target calves/weaners <input id="bpCalves" type="number" value="700"></label>
+    <label>Calf wastage % <input id="bpWastage" type="number" value="15"></label>
+    <label>Cycles per pregnancy <input id="bpCycles" type="number" step="0.1" value="1.5"></label>
+    <label>Matings per cycle <input id="bpMatings" type="number" value="2"></label>
+    <label>Peak conceptions % <input id="bpPeakPct" type="number" value="75"></label>
+    <label>Peak mating period days <input id="bpPeakDays" type="number" value="62"></label>
+    <label>Bull capacity/day <input id="bpCapacity" type="number" value="5"></label>
+    <label>Backup bulls <input id="bpBackup" type="number" value="1"></label>
+    <label>Bulls available <input id="bpAvailable" type="number"></label>
+  </div>
+  <button class="primary" onclick="App.calculateBullPower()">Calculate Bull Power</button>
+  <button onclick="App.saveBullPower()">Save Bull Power Result</button>
+  <div id="bullPowerOut" class="panel"></div>
+</section>
+
 <section id="library" class="screen">
   <h2>Stations / Years</h2>
   <button onclick="App.renderLibrary()">Refresh</button>
@@ -158,8 +225,8 @@
 <section id="report" class="screen">
   <div class="reportHeader"><h2>Station Manager Report</h2><div><button onclick="App.renderReport()">Refresh</button><button onclick="App.exportCSV()">CSV</button></div></div>
   <div id="reportSummary" class="panel"></div>
-  <div class="reportCards"><div id="profileCard" class="panel"></div><div id="kpiCard" class="panel"></div><div id="forecastCard" class="panel"></div></div>
-  <div class="charts"><canvas id="chartPregClass"></canvas><canvas id="chartStage"></canvas><canvas id="chartSeason"></canvas><canvas id="chartBCS"></canvas><canvas id="chartHeiferWeight"></canvas><canvas id="chartCalving"></canvas><canvas id="chartProjection"></canvas><canvas id="chartProduction"></canvas><canvas id="chartBenchmark"></canvas></div>
+  <div class="reportCards"><div id="profileCard" class="panel"></div><div id="kpiCard" class="panel"></div><div id="forecastCard" class="panel"></div><div id="advisoryCard" class="panel"></div><div id="businessCard" class="panel"></div><div id="bullPowerCard" class="panel"></div></div>
+  <div class="charts"><canvas id="chartPregClass"></canvas><canvas id="chartStage"></canvas><canvas id="chartSeason"></canvas><canvas id="chartBCS"></canvas><canvas id="chartHeiferWeight"></canvas><canvas id="chartCalving"></canvas><canvas id="chartProjection"></canvas><canvas id="chartProduction"></canvas><canvas id="chartBenchmark"></canvas><canvas id="chartWeanerProd"></canvas><canvas id="chartAnnualTrend"></canvas></div>
 </section>
 </main>
 <script src="app.js"></script>

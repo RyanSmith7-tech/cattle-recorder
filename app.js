@@ -1,6 +1,6 @@
-const App=(()=>{const KEY="CVSS_V20";
+const App=(()=>{const KEY="CVSS_V21";
 const classNames={H:"Maiden heifer",F:"First-lactation heifer",W:"Wet cow",D:"Dry cow",C:"Cull cow",S:"Speyed cow",B:"Bull"};
-let S={profiles:[],sessions:[],tallies:[],draftTemplates:[],active:null,records:[],animal:{},tally:{},draftPens:[]};
+let S={profiles:[],sessions:[],tallies:[],annualSchedules:[],bullPower:[],draftTemplates:[],active:null,records:[],animal:{},tally:{},draftPens:[]};
 let charts=[];
 const $=id=>document.getElementById(id);
 const today=()=>new Date().toISOString().slice(0,10);
@@ -9,9 +9,9 @@ const pct=(n,d)=>d?Math.round(n/d*100):0;
 const avg=a=>{let v=a.filter(x=>x!==null&&x!==undefined&&!isNaN(x));return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
 const pregNo=p=>!p||p==="E"?0:Number(String(p).replace("P",""));
 const save=()=>localStorage.setItem(KEY,JSON.stringify(S));
-const load=()=>{let raw=localStorage.getItem(KEY);if(raw)S=JSON.parse(raw);S.profiles??=[];S.sessions??=[];S.tallies??=[];S.draftTemplates??=[];S.records??=[];S.tally??={};S.draftPens??=[];};
+const load=()=>{let raw=localStorage.getItem(KEY);if(raw)S=JSON.parse(raw);S.profiles??=[];S.sessions??=[];S.tallies??=[];S.annualSchedules??=[];S.bullPower??=[];S.draftTemplates??=[];S.records??=[];S.tally??={};S.draftPens??=[];};
 
-function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");if(id==="crush")setTimeout(()=>$("quickInput").focus(),50);if(id==="tally")renderTally();if(id==="library")renderLibrary();if(id==="report")renderReport();if(id==="session"){renderDraftTemplates();renderDraftPens();renderCalvingGuide();}}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));$(id).classList.add("active");if(id==="crush")setTimeout(()=>$("quickInput").focus(),50);if(id==="tally")renderTally();if(id==="library")renderLibrary();if(id==="annual"){asYear.value ||= new Date().getFullYear(); if(S.active){asStation.value=S.active.station;asYear.value=S.active.year;asPregnant.value=S.records.filter(r=>r.preg&&r.preg!=="E").length;asFemalesMated.value=S.records.length;}}if(id==="bullpower"){bpYear.value ||= new Date().getFullYear(); if(S.active){bpStation.value=S.active.station;bpYear.value=S.active.year;bpFemales.value=S.records.length;}}if(id==="report")renderReport();if(id==="session"){renderDraftTemplates();renderDraftPens();renderCalvingGuide();}}
 function profile(st){return S.profiles.find(p=>(p.name||"").toLowerCase()===(st||"").toLowerCase())}
 function riskText(p){let a=[];if(["Likely deficient","Likely marginal"].includes(p.phos))a.push("Phosphorus/nutrition risk flag.");if(["Moderate","High"].includes(p.dryFeed))a.push("Dry-season feed risk flag.");if(p.country==="Northern Forest")a.push("Northern Forest: monitor lactating cow BCS and re-conception closely.");return a.join(" ")||"No major profile risk flags set."}
 function profileHTML(p){return `<h3>${p.name}</h3><p><b>${p.country}</b> | ${p.size} | ${p.total||"?"} cattle | ${p.breeders||"?"} breeders | ${p.breed||""}</p><p>Production: heifers +${p.heiferGrowth||0}kg/yr, cows +${p.cowGrowth||0}kg/yr, dry BCS ${p.dryBcs||0}/yr, wet BCS ${p.wetBcs||0}/yr, puberty target ${p.puberty||"?"}kg.</p><p>${riskText(p)}</p>`}
@@ -54,19 +54,117 @@ function clearCurrentTally(){S.tally={};renderTally()}
 function renderTally(){if(S.active){tyStation.value=S.active.station;tyYear.value=S.active.year;tyPaddock.value=S.active.paddock;tyMob.value=S.active.mob;tyTested.value=S.records.length;tyPregnant.value=S.records.filter(r=>r.preg&&r.preg!=="E").length}else tyYear.value ||= new Date().getFullYear();let total=Object.values(S.tally).reduce((a,b)=>a+b,0),cows=(S.tally["Wet cows"]||0)+(S.tally["Dry cows"]||0)+(S.tally["Cull cows"]||0)+(S.tally["Speyed cows"]||0),calves=S.tally.Calves||0,weaners=S.tally.Weaners||0;tallyOut.innerHTML=`<h3>Current tally: ${total} head</h3><table class="table"><tr><th>Class</th><th>Head</th></tr>${Object.keys(S.tally).sort().map(k=>`<tr><td>${k}</td><td>${S.tally[k]}</td></tr>`).join("")}</table><p>Calving/branding estimate: ${pct(calves,cows)}%. Weaning estimate: ${pct(weaners,cows)}%.</p>`}
 function saveTally(){let t={id:uid(),station:tyStation.value||"Unnamed Station",year:+tyYear.value||new Date().getFullYear(),paddock:tyPaddock.value,mob:tyMob.value,joined:+tyJoined.value||0,tested:+tyTested.value||0,pregnant:+tyPregnant.value||0,notes:tyNotes.value,counts:{...S.tally},date:new Date().toISOString()};S.tallies.unshift(t);S.tally={};save();completeSound();renderTally()}
 
-function benchmark(country){return {"Northern Forest":{preg:70,wean:55,lowBcs:25},"Northern Downs":{preg:80,wean:70,lowBcs:20},"Central Forest":{preg:82,wean:72,lowBcs:18},"Southern Forest":{preg:85,wean:75,lowBcs:15},"Mixed / Other":{preg:80,wean:70,lowBcs:20}}[country||"Mixed / Other"]}
+function benchmark(country){let b=countryBenchmark(country);return {preg:b.preg,wean:b.weaner.median,lowBcs:20,loss:b.loss,missing:b.missing,weaner:b.weaner}}
 function projectionRows(records){let p=profile(S.active?.station)||{},target=p.targetBcs||3;let groups=[["Maiden heifers",r=>r.classCode==="H",p.heiferGrowth||0,p.dryBcs||0],["First-lactation heifers",r=>r.classCode==="F",p.heiferGrowth||0,p.wetBcs||0],["Wet cows",r=>r.classCode==="W"||r.wetDry==="Wet",p.cowGrowth||0,p.wetBcs||0],["Dry cows",r=>r.classCode==="D"||r.wetDry==="Dry",p.cowGrowth||0,p.dryBcs||0]];return groups.map(g=>{let x=records.filter(g[1]),aw=avg(x.map(r=>r.weight)),ab=avg(x.map(r=>r.bcs));return {name:g[0],n:x.length,aw,projW:aw?aw+g[2]:null,ab,projB:ab?Math.max(1,Math.min(5,ab+g[3])):null,below:pct(x.filter(r=>r.bcs&&r.bcs<target).length,x.length),pub:p.puberty&&aw?aw+g[2]>=p.puberty:null}}).filter(x=>x.n)}
 function calvDist(records){let o={};records.filter(r=>r.preg&&r.preg!=="E").forEach(r=>{let w=calvingWindow(r.preg,S.active?.date||today());o[w]=(o[w]||0)+1});return o}
-function renderReport(){let rec=S.records.length?S.records:(S.sessions[0]?.records||[]);if(!rec.length){reportSummary.innerHTML="No current or saved session selected.";return}let session=S.active||S.sessions[0],p=profile(session.station),b=benchmark(p?.country);let preg=rec.filter(r=>r.preg&&r.preg!=="E").length,empty=rec.filter(r=>r.preg==="E").length,low=pct(rec.filter(r=>r.bcs&&r.bcs<=(p?.targetBcs||3)-1).length,rec.length);reportSummary.innerHTML=`<h3>${session.station} — ${session.year} — ${session.paddock} — ${session.mob}</h3><p>Total ${rec.length}; Pregnant ${preg} (${pct(preg,rec.length)}%); Empty ${empty}; Low BCS risk ${low}%.</p>`;profileCard.innerHTML=p?profileHTML(p):"No station profile.";kpiCard.innerHTML=`<h3>North Australia KPI checks</h3><p>Pregnancy: ${pct(preg,rec.length)}% vs benchmark ${b.preg}%.</p><p>Low BCS: ${low}% vs target max ${b.lowBcs}%.</p><p>${riskText(p||{})}</p>`;let rows=projectionRows(rec);forecastCard.innerHTML=`<h3>12 month forecast</h3><table class="table"><tr><th>Group</th><th>Head</th><th>Wt now</th><th>Wt 12m</th><th>BCS now</th><th>BCS 12m</th><th>Puberty</th></tr>${rows.map(r=>`<tr><td>${r.name}</td><td>${r.n}</td><td>${r.aw?r.aw.toFixed(0):"N/A"}</td><td>${r.projW?r.projW.toFixed(0):"N/A"}</td><td>${r.ab?r.ab.toFixed(1):"N/A"}</td><td>${r.projB?r.projB.toFixed(1):"N/A"}</td><td>${r.pub===null?"N/A":r.pub?"On track":"Below target"}</td></tr>`).join("")}</table>`;drawCharts(rec,rows,b)}
+function renderReport(){let rec=S.records.length?S.records:(S.sessions[0]?.records||[]);if(!rec.length){reportSummary.innerHTML="No current or saved session selected.";return}let session=S.active||S.sessions[0],p=profile(session.station),b=benchmark(p?.country);let preg=rec.filter(r=>r.preg&&r.preg!=="E").length,empty=rec.filter(r=>r.preg==="E").length,low=pct(rec.filter(r=>r.bcs&&r.bcs<=(p?.targetBcs||3)-1).length,rec.length);reportSummary.innerHTML=`<h3>${session.station} — ${session.year} — ${session.paddock} — ${session.mob}</h3><p>Total ${rec.length}; Pregnant ${preg} (${pct(preg,rec.length)}%); Empty ${empty}; Low BCS risk ${low}%.</p>`;profileCard.innerHTML=p?profileHTML(p):"No station profile.";const annual=latestAnnual(session.station);const ak=annual?annualKpis(annual):null;kpiCard.innerHTML=`<h3>North Australia KPI checks</h3><p>Pregnancy: ${pct(preg,rec.length)}% vs benchmark ${b.preg}%.</p><p>Low BCS: ${low}% vs target max ${b.lowBcs}%.</p>${ak?`<p>Weaner production: ${ak.weanerProd} kg/cow vs median ${b.weaner.median}.</p><p>Calf loss: ${ak.calfLoss}% vs ${b.loss}%. Missing cows: ${ak.missing}% vs ${b.missing}%.</p>`:"<p>No annual schedule saved yet.</p>"}<p>${riskText(p||{})}</p>`;let rows=projectionRows(rec);forecastCard.innerHTML=`<h3>12 month forecast</h3><table class="table"><tr><th>Group</th><th>Head</th><th>Wt now</th><th>Wt 12m</th><th>BCS now</th><th>BCS 12m</th><th>Puberty</th></tr>${rows.map(r=>`<tr><td>${r.name}</td><td>${r.n}</td><td>${r.aw?r.aw.toFixed(0):"N/A"}</td><td>${r.projW?r.projW.toFixed(0):"N/A"}</td><td>${r.ab?r.ab.toFixed(1):"N/A"}</td><td>${r.projB?r.projB.toFixed(1):"N/A"}</td><td>${r.pub===null?"N/A":r.pub?"On track":"Below target"}</td></tr>`).join("")}</table>`;advisoryCard.innerHTML=`<h3>Veterinary advisory</h3><ul class="actionList">${advisory(rec,session,annual).map(x=>`<li>${x}</li>`).join("")}</ul><h4>Action groups</h4><p>Feedbase • Lactation • Health/stress/predators • Breeding</p>`;businessCard.innerHTML=ak?`<h3>Business / BRICK-style KPIs</h3><p>Gross margin: $${ak.grossMargin.toLocaleString()}</p><p>Operating margin: $${ak.operatingMargin.toLocaleString()}</p><p>Return on cattle capital: ${ak.returnOnCattleCapital}%</p><p>Annual liveweight production: ${ak.lwProd} kg/cow</p>`:"<h3>Business / BRICK-style KPIs</h3><p>Add an annual schedule to calculate gross margin, operating margin and liveweight production.</p>";const bp=(S.bullPower||[]).find(x=>x.station===session.station);bullPowerCard.innerHTML=bp?`<h3>Bull Power</h3><p>Recommended bulls: ${bp.result.recommended}</p><p>Minimum: ${bp.result.minBulls}; capacity/bull: ${bp.result.bullCapacity} matings.</p>`:"<h3>Bull Power</h3><p>No bull power calculation saved.</p>";drawCharts(rec,rows,b)}
 function clearCharts(){charts.forEach(c=>c.destroy());charts=[]}
 function chart(id,type,labels,datasets){charts.push(new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,scales:type==="bar"?{y:{beginAtZero:true}}:{}}}))}
-function drawCharts(rec,rows,b){clearCharts();let cls=["H","F","W","D","C","S","B"];chart("chartPregClass","bar",cls.map(c=>classNames[c]),[{label:"Preg %",data:cls.map(c=>{let x=rec.filter(r=>r.classCode===c);return pct(x.filter(r=>r.preg&&r.preg!=="E").length,x.length)})}]);let stages=["E","P1","P2","P3","P4","P5","P6","P7","P8","P9"];chart("chartStage","bar",stages,[{label:"Head by preg stage",data:stages.map(s=>rec.filter(r=>r.preg===s).length)}]);chart("chartSeason","bar",["In-season est P1-P6","Out-of-season est P7-P9"],[{label:"%",data:[pct(rec.filter(r=>pregNo(r.preg)>=1&&pregNo(r.preg)<=6).length,rec.filter(r=>r.preg&&r.preg!=="E").length),pct(rec.filter(r=>pregNo(r.preg)>=7).length,rec.filter(r=>r.preg&&r.preg!=="E").length)]}]);chart("chartBCS","bar",["1","2","3","4","5"],[{label:"Preg % by BCS",data:[1,2,3,4,5].map(v=>{let x=rec.filter(r=>r.bcs===v);return pct(x.filter(r=>r.preg&&r.preg!=="E").length,x.length)})}]);let bands=["<300","300-349","350-399","400-449","450+"];let band=w=>w<300?"<300":w<350?"300-349":w<400?"350-399":w<450?"400-449":"450+";let h=rec.filter(r=>["H","F"].includes(r.classCode)&&r.weight);chart("chartHeiferWeight","bar",bands,[{label:"Heifer preg % by weight",data:bands.map(bb=>{let x=h.filter(r=>band(r.weight)===bb);return pct(x.filter(r=>r.preg&&r.preg!=="E").length,x.length)})}]);let cd=calvDist(rec);chart("chartCalving","bar",Object.keys(cd),[{label:"Expected calvings",data:Object.values(cd)}]);chart("chartProjection","bar",rows.map(r=>r.name),[{label:"Weight now",data:rows.map(r=>r.aw||0)},{label:"Projected 12m",data:rows.map(r=>r.projW||0)}]);chart("chartBenchmark","bar",["Preg %","Low BCS max"],[{label:"This session",data:[pct(rec.filter(r=>r.preg&&r.preg!=="E").length,rec.length),pct(rec.filter(r=>r.bcs&&r.bcs<=2).length,rec.length)]},{label:"Benchmark",data:[b.preg,b.lowBcs]}]);let t=S.tallies.filter(x=>x.station===(S.active?.station||S.sessions[0]?.station));chart("chartProduction","bar",t.map(x=>`${x.year} ${x.mob}`),[{label:"Weaning %",data:t.map(x=>pct(x.counts.Weaners||0,x.joined||x.pregnant))},{label:"Calving/branding %",data:t.map(x=>pct(x.counts.Calves||0,x.joined||x.pregnant))}])}
-function renderLibrary(){let names=[...new Set([...S.profiles.map(p=>p.name),...S.sessions.map(s=>s.station),...S.tallies.map(t=>t.station)])];libraryOut.innerHTML=names.sort().map(n=>{let prof=profile(n),sessions=S.sessions.filter(s=>s.station===n),tallies=S.tallies.filter(t=>t.station===n);let years=[...new Set([...sessions.map(s=>s.year),...tallies.map(t=>t.year)])].sort((a,b)=>b-a);return `<div class="panel"><h3>📁 ${n}</h3>${prof?`<div class="row">Profile: ${prof.country} ${prof.total||"?"} cattle <button onclick="App.openProfile('${prof.id}')">Open</button></div>`:""}${years.map(y=>`<div class="row"><b>📂 ${y}</b> ${sessions.filter(s=>s.year==y).length} preg sessions, ${tallies.filter(t=>t.year==y).length} tallies</div>`).join("")}</div>`}).join("")||"No station data yet."}
+function drawCharts(rec,rows,b){clearCharts();let cls=["H","F","W","D","C","S","B"];chart("chartPregClass","bar",cls.map(c=>classNames[c]),[{label:"Preg %",data:cls.map(c=>{let x=rec.filter(r=>r.classCode===c);return pct(x.filter(r=>r.preg&&r.preg!=="E").length,x.length)})}]);let stages=["E","P1","P2","P3","P4","P5","P6","P7","P8","P9"];chart("chartStage","bar",stages,[{label:"Head by preg stage",data:stages.map(s=>rec.filter(r=>r.preg===s).length)}]);chart("chartSeason","bar",["In-season est P1-P6","Out-of-season est P7-P9"],[{label:"%",data:[pct(rec.filter(r=>pregNo(r.preg)>=1&&pregNo(r.preg)<=6).length,rec.filter(r=>r.preg&&r.preg!=="E").length),pct(rec.filter(r=>pregNo(r.preg)>=7).length,rec.filter(r=>r.preg&&r.preg!=="E").length)]}]);chart("chartBCS","bar",["1","2","3","4","5"],[{label:"Preg % by BCS",data:[1,2,3,4,5].map(v=>{let x=rec.filter(r=>r.bcs===v);return pct(x.filter(r=>r.preg&&r.preg!=="E").length,x.length)})}]);let bands=["<300","300-349","350-399","400-449","450+"];let band=w=>w<300?"<300":w<350?"300-349":w<400?"350-399":w<450?"400-449":"450+";let h=rec.filter(r=>["H","F"].includes(r.classCode)&&r.weight);chart("chartHeiferWeight","bar",bands,[{label:"Heifer preg % by weight",data:bands.map(bb=>{let x=h.filter(r=>band(r.weight)===bb);return pct(x.filter(r=>r.preg&&r.preg!=="E").length,x.length)})}]);let cd=calvDist(rec);chart("chartCalving","bar",Object.keys(cd),[{label:"Expected calvings",data:Object.values(cd)}]);chart("chartProjection","bar",rows.map(r=>r.name),[{label:"Weight now",data:rows.map(r=>r.aw||0)},{label:"Projected 12m",data:rows.map(r=>r.projW||0)}]);chart("chartBenchmark","bar",["Preg %","Low BCS max"],[{label:"This session",data:[pct(rec.filter(r=>r.preg&&r.preg!=="E").length,rec.length),pct(rec.filter(r=>r.bcs&&r.bcs<=2).length,rec.length)]},{label:"Benchmark",data:[b.preg,b.lowBcs]}]);let st=S.active?.station||S.sessions[0]?.station;let t=S.tallies.filter(x=>x.station===st);chart("chartProduction","bar",t.map(x=>`${x.year} ${x.mob}`),[{label:"Weaning %",data:t.map(x=>pct(x.counts.Weaners||0,x.joined||x.pregnant))},{label:"Calving/branding %",data:t.map(x=>pct(x.counts.Calves||0,x.joined||x.pregnant))}]);let annuals=(S.annualSchedules||[]).filter(x=>x.station===st).sort((a,b)=>a.year-b.year);chart("chartWeanerProd","bar",annuals.map(a=>a.year),[{label:"Weaner production kg/cow",data:annuals.map(a=>annualKpis(a).weanerProd)},{label:"Median benchmark",data:annuals.map(a=>b.weaner.median)}]);chart("chartAnnualTrend","line",annuals.map(a=>a.year),[{label:"Preg %",data:annuals.map(a=>annualKpis(a).pregRate)},{label:"Calf loss %",data:annuals.map(a=>annualKpis(a).calfLoss)},{label:"Missing cows %",data:annuals.map(a=>annualKpis(a).missing)}])}
+
+function countryBenchmark(country){return {
+  "Southern Forest":{weaner:{low:164,median:191,top:240},p4m:74,preg:87,loss:5,missing:8,steerGain:190},
+  "Central Forest":{weaner:{low:161,median:195,top:220},p4m:77,preg:88,loss:6,missing:6,steerGain:180},
+  "Northern Downs":{weaner:{low:135,median:163,top:183},p4m:68,preg:82,loss:7,missing:7,steerGain:170},
+  "Northern Forest":{weaner:{low:74,median:93,top:112},p4m:17,preg:66,loss:14,missing:12,steerGain:100},
+  "Mixed / Other":{weaner:{low:135,median:163,top:183},p4m:68,preg:82,loss:7,missing:7,steerGain:160}
+}[country||"Mixed / Other"]}
+
+function annualKpis(a){
+  const weanerProd = a.retainedCows ? (a.weaners / a.retainedCows) * a.weanerWeight : 0;
+  const pregRate = a.femalesMated ? pct(a.pregnant, a.femalesMated) : 0;
+  const calfLoss = a.pregnant ? pct(Math.max(0, a.pregnant - a.weaners), a.pregnant) : 0;
+  const missing = a.cowsLastYear ? pct(Math.max(0, a.cowsLastYear - a.cowsMustered), a.cowsLastYear) : 0;
+  const brandingRate = a.femalesMated ? pct(a.branders, a.femalesMated) : 0;
+  const grossMargin = (a.income||0) - (a.varCosts||0);
+  const operatingMargin = grossMargin - (a.fixedCosts||0);
+  const avgCapital = ((a.openCapital||0) + (a.closeCapital||0)) / 2;
+  const returnOnCattleCapital = avgCapital ? Math.round((operatingMargin / avgCapital) * 1000) / 10 : 0;
+  const lwProd = a.retainedCows ? ((a.cowWeight||0) * (1 - missing/100) + (a.weanerWeight||0) * (a.weaners/a.retainedCows || 0) - (a.cowWeightLast||a.cowWeight||0)) : 0;
+  return {weanerProd:Math.round(weanerProd),pregRate,calfLoss,missing,brandingRate,grossMargin,operatingMargin,returnOnCattleCapital,lwProd:Math.round(lwProd)};
+}
+
+function collectAnnualForm(){
+  return {id:uid(),station:asStation.value||"Unnamed Station",year:+asYear.value||new Date().getFullYear(),
+  retainedCows:+asRetainedCows.value||0,femalesMated:+asFemalesMated.value||0,pregnant:+asPregnant.value||0,weaners:+asWeaners.value||0,weanerWeight:+asWeanerWeight.value||0,
+  cowsMustered:+asCowsMustered.value||0,cowsLastYear:+asCowsLastYear.value||0,branders:+asBranders.value||0,cowWeight:+asCowWeight.value||0,cowWeightLast:+asCowWeightLast.value||0,
+  openCapital:+asOpenCapital.value||0,closeCapital:+asCloseCapital.value||0,income:+asIncome.value||0,varCosts:+asVarCosts.value||0,fixedCosts:+asFixedCosts.value||0,ae:+asAE.value||0,notes:asNotes.value||"",
+  classCounts:{weaners:+asClassWeaners.value||0,h1:+asClassH1.value||0,h2:+asClassH2.value||0,cows:+asClassCows.value||0,speys:+asClassSpeys.value||0,bulls:+asClassBulls.value||0,males:+asClassMales.value||0,saleWeight:+asSaleWeight.value||0},savedAt:new Date().toISOString()};
+}
+
+function calculateAnnualPreview(){
+  const a=collectAnnualForm(), p=profile(a.station), b=countryBenchmark(p?.country);
+  const k=annualKpis(a);
+  annualOut.innerHTML=`<h3>${a.station} ${a.year}</h3>
+  <span class="kpiBadge">Weaner production: <b>${k.weanerProd} kg/cow</b> vs median ${b.weaner.median}</span>
+  <span class="kpiBadge">Annual pregnancy: <b>${k.pregRate}%</b> vs ${b.preg}%</span>
+  <span class="kpiBadge">Calf loss: <b>${k.calfLoss}%</b> vs ${b.loss}%</span>
+  <span class="kpiBadge">Pregnant/mustered cows missing: <b>${k.missing}%</b> vs ${b.missing}%</span>
+  <span class="kpiBadge">Branding rate: <b>${k.brandingRate}%</b></span>
+  <span class="kpiBadge">Annual liveweight production: <b>${k.lwProd} kg/cow</b></span>
+  <span class="kpiBadge">Gross margin: <b>$${k.grossMargin.toLocaleString()}</b></span>
+  <span class="kpiBadge">Operating margin: <b>$${k.operatingMargin.toLocaleString()}</b></span>
+  <span class="kpiBadge">Return on cattle capital: <b>${k.returnOnCattleCapital}%</b></span>`;
+  return {a,k,b};
+}
+
+function saveAnnualSchedule(){
+  const {a}=calculateAnnualPreview();
+  S.annualSchedules.unshift(a);
+  save(); completeSound();
+}
+
+function bullPowerCalc(){
+  const calves=+bpCalves.value||0, wastage=(+bpWastage.value||0)/100, cycles=+bpCycles.value||1.5, matings=+bpMatings.value||2, peak=(+bpPeakPct.value||75)/100, days=+bpPeakDays.value||62, cap=+bpCapacity.value||5, backup=+bpBackup.value||0;
+  const femaleMatings = (calves / Math.max(0.01, (1-wastage))) * cycles * matings * peak;
+  const bullCapacity = cap * days;
+  const minBulls = Math.ceil(femaleMatings / bullCapacity);
+  const recommended = minBulls + backup;
+  return {femaleMatings:Math.round(femaleMatings),bullCapacity,minBulls,recommended};
+}
+
+function calculateBullPower(){
+  const r=bullPowerCalc(), available=+bpAvailable.value||0;
+  bullPowerOut.innerHTML=`<h3>Bull Power Result</h3>
+  <p><b>Peak mating demand:</b> ${r.femaleMatings} matings</p>
+  <p><b>Capacity per sound bull:</b> ${r.bullCapacity} matings over peak period</p>
+  <p><b>Minimum sound bulls:</b> ${r.minBulls}</p>
+  <p><b>Recommended with backup:</b> ${r.recommended}</p>
+  <p>${available?`Available bulls: ${available}. ${available>=r.recommended?'<span class="good">Adequate.</span>':'<span class="bad">Short by '+(r.recommended-available)+' bulls.</span>'}`:""}</p>`;
+  return r;
+}
+
+function saveBullPower(){
+  const r=calculateBullPower();
+  S.bullPower.unshift({id:uid(),station:bpStation.value||"Unnamed Station",year:+bpYear.value||new Date().getFullYear(),inputs:{females:+bpFemales.value||0,calves:+bpCalves.value||0,wastage:+bpWastage.value||0,cycles:+bpCycles.value||0,matings:+bpMatings.value||0,peakPct:+bpPeakPct.value||0,peakDays:+bpPeakDays.value||0,capacity:+bpCapacity.value||0,backup:+bpBackup.value||0,available:+bpAvailable.value||0},result:r,savedAt:new Date().toISOString()});
+  save(); completeSound();
+}
+
+function latestAnnual(station){return (S.annualSchedules||[]).filter(a=>a.station===station).sort((a,b)=>b.year-a.year)[0]}
+function advisory(rec, session, annual){
+  const p=profile(session.station)||{}, b=countryBenchmark(p.country), k=annual?annualKpis(annual):null;
+  const pregRate=pct(rec.filter(r=>r.preg&&r.preg!=="E").length,rec.length);
+  const lowBcs=pct(rec.filter(r=>r.bcs&&r.bcs<3).length,rec.length);
+  const firstLact=pct(rec.filter(r=>r.classCode==="F").length,rec.length);
+  const lateCalv=pct(rec.filter(r=>pregNo(r.preg)>=7).length,rec.filter(r=>r.preg&&r.preg!=="E").length);
+  let flags=[];
+  if(pregRate < b.preg) flags.push("Annual pregnancy/session pregnancy is below country-type benchmark: investigate nutrition, disease and joining management.");
+  if(lowBcs > 20) flags.push("High proportion below BCS 3: prioritise feed budgeting, supplementation economics and early weaning.");
+  if(firstLact > 15) flags.push("Large first-lactation component: manage separately because this class is a known reproduction risk group.");
+  if(lateCalv > 20) flags.push("High P7-P9/early-calving or spread signal: use foetal age drafting to segregate nutrition and tighten management.");
+  if(p.phos==="Likely deficient"||p.phos==="Likely marginal") flags.push("Phosphorus deficiency risk: review wet-season P supplementation and response economics.");
+  if(k && k.calfLoss > b.loss) flags.push("Calf loss is above benchmark: consider pestivirus/vibriosis, mustering around calving, predation, heat/humidity and cows with prior calf loss.");
+  if(k && k.missing > b.missing) flags.push("Pregnant/mustered cows missing is above benchmark: check mortality, mustering efficiency and dry-season feed risk.");
+  if(!flags.length) flags.push("No major red flags detected against the current inputs; build station history over multiple years to refine benchmarks.");
+  return flags;
+}
+
+function renderLibrary(){let names=[...new Set([...S.profiles.map(p=>p.name),...S.sessions.map(s=>s.station),...S.tallies.map(t=>t.station),...(S.annualSchedules||[]).map(a=>a.station),...(S.bullPower||[]).map(b=>b.station)])];libraryOut.innerHTML=names.sort().map(n=>{let prof=profile(n),sessions=S.sessions.filter(s=>s.station===n),tallies=S.tallies.filter(t=>t.station===n),annuals=(S.annualSchedules||[]).filter(a=>a.station===n),bps=(S.bullPower||[]).filter(b=>b.station===n);let years=[...new Set([...sessions.map(s=>s.year),...tallies.map(t=>t.year),...annuals.map(a=>a.year),...bps.map(b=>b.year)])].sort((a,b)=>b-a);return `<div class="panel"><h3>📁 ${n}</h3>${prof?`<div class="row">Profile: ${prof.country} ${prof.total||"?"} cattle <button onclick="App.openProfile('${prof.id}')">Open</button></div>`:""}${years.map(y=>`<div class="row"><b>📂 ${y}</b> ${sessions.filter(s=>s.year==y).length} preg sessions, ${tallies.filter(t=>t.year==y).length} tallies, ${annuals.filter(a=>a.year==y).length} annual schedules, ${bps.filter(b=>b.year==y).length} bull power</div>`).join("")}</div>`}).join("")||"No station data yet."}
 function exportCSV(){let rows=[["Station","Year","Paddock","Mob","Class","Age","BCS","Preg","Weight","WetDry","Draft"]];S.records.forEach(r=>rows.push([r.station,r.year,r.paddock,r.mob,classNames[r.classCode]||r.classCode,r.age??"",r.bcs??"",r.preg??"",r.weight??"",r.wetDry??"",r.draft]));let csv=rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(",")).join("\\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="station_stats_records.csv";a.click()}
 function beep(f,d=.08){try{let c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator();o.connect(c.destination);o.frequency.value=f;o.start();o.stop(c.currentTime+d)}catch(e){}}
 function completeSound(){beep(900,.12);setTimeout(()=>beep(1250,.14),140)}
 function errorSound(){beep(220,.15)}
 function clearAll(){if(confirm("Clear all local data?")){localStorage.removeItem(KEY);location.reload()}}
-load();ssDate.value=today();ssYear.value=new Date().getFullYear();tyYear.value=new Date().getFullYear();renderDraftTemplates();renderDraftPens();
-return {show,saveProfile,openProfile,applyProfileToSession,addDraftPen,removeDraftPen,clearDraftPens,loadDraftExample,saveDraftTemplate,loadDraftTemplate,renderCalvingGuide,startSession,finishSession,addTally,clearCurrentTally,saveTally,renderLibrary,renderReport,exportCSV,clearAll}
+load();ssDate.value=today();ssYear.value=new Date().getFullYear();tyYear.value=new Date().getFullYear();if(window.asYear)asYear.value=new Date().getFullYear();if(window.bpYear)bpYear.value=new Date().getFullYear();renderDraftTemplates();renderDraftPens();
+return {show,saveProfile,openProfile,applyProfileToSession,addDraftPen,removeDraftPen,clearDraftPens,loadDraftExample,saveDraftTemplate,loadDraftTemplate,renderCalvingGuide,startSession,finishSession,addTally,clearCurrentTally,saveTally,renderLibrary,renderReport,exportCSV,saveAnnualSchedule,calculateAnnualPreview,calculateBullPower,saveBullPower,clearAll}
 })();
