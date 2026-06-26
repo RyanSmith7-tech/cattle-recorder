@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-  <title>Central Vets Station Stats</title>
+  <title>Central Vets Station Stats v3</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,149 +13,144 @@
   <img src="image.png" onerror="this.style.display='none'">
   <div>
     <h1>Central Vets Station Stats</h1>
-    <p>Built by vets. Designed for stations.</p>
+    <p>Version 3.0 — Mob sheets + crush recording + advisory reports</p>
   </div>
 </header>
 
 <nav>
   <button onclick="App.show('home')">Home</button>
-  <button onclick="App.show('profile')">Station Profile</button>
-  <button onclick="App.show('session')">Session Builder</button>
-  <button onclick="App.show('crush')">Crush Console</button>
-  <button onclick="App.show('tally')">Yard Tally</button>
-  <button onclick="App.show('annual')">Annual Schedule</button>
-  <button onclick="App.show('bullpower')">Bull Power</button>
-  <button onclick="App.show('library')">Stations / Years</button>
+  <button onclick="App.show('setup')">New Job</button>
+  <button onclick="App.show('mob')">Mob Sheet</button>
+  <button onclick="App.show('crush')">Crush Mode</button>
+  <button onclick="App.show('yard')">Yard Tally</button>
   <button onclick="App.show('report')">Report</button>
+  <button onclick="App.show('history')">Station History</button>
 </nav>
 
 <main>
 <section id="home" class="screen active">
-  <h2>Yard Day Dashboard</h2>
+  <h2>Start Yard Day</h2>
   <div class="homeGrid">
-    <button class="homeTile" onclick="App.quickStart('preg')"><b>Preg test session</b><span>Fast crush-side recording + drafts</span></button>
-    <button class="homeTile" onclick="App.quickStart('mixed')"><b>Mixed mob tally</b><span>Enter totals for calves, weaners, cows, bulls</span></button>
-    <button class="homeTile" onclick="App.quickStart('heifers')"><b>Heifer preg test</b><span>Weight, BCS, preg stage + puberty predictor</span></button>
-    <button class="homeTile" onclick="App.quickStart('repeat')"><b>Repeat last setup</b><span>Use the previous station, mob and draft template</span></button>
+    <button class="homeTile" onclick="App.quickJob('mob')"><b>Pregnancy Mob Sheet</b><span>Fast paper-sheet style totals: E, P1–P9, BCS, wet, CFA, speyed, bulls</span></button>
+    <button class="homeTile" onclick="App.quickJob('crush')"><b>Individual Crush Mode</b><span>Keyboard-only animal records with beep, auto-save and draft allocation</span></button>
+    <button class="homeTile" onclick="App.quickJob('yard')"><b>Yard Tally</b><span>Enter total calves, weaners, cows, bulls, speyed, culls</span></button>
+    <button class="homeTile" onclick="App.repeatLastJob()"><b>Repeat Last Job</b><span>Copy last station/paddock/mob and draft setup</span></button>
   </div>
   <div id="homeOut" class="panel"></div>
 </section>
 
-<section id="profile" class="screen">
-  <h2>Station Profile</h2>
-  <div class="grid4">
-    <label>Station name <input id="pfName"></label>
-    <label>Manager/contact <input id="pfManager"></label>
-    <label>Region/district <input id="pfRegion"></label>
-    <label>Country type <select id="pfCountry"><option>Northern Forest</option><option>Northern Downs</option><option>Central Forest</option><option>Southern Forest</option><option>Mixed / Other</option></select></label>
-    <label>Property size <input id="pfSize" placeholder="e.g. 85,000 ha"></label>
-    <label>Total cattle <input id="pfTotal" type="number"></label>
-    <label>Breeder cows <input id="pfBreeders" type="number"></label>
-    <label>Breed type <input id="pfBreed" placeholder="Brahman / Composite"></label>
-    <label>Joining system <select id="pfJoining"><option>Continuous</option><option>Controlled</option><option>Part-controlled</option></select></label>
-    <label>Wet season phosphorus <select id="pfPhos"><option>Unknown</option><option>Likely adequate</option><option>Likely marginal</option><option>Likely deficient</option></select></label>
-    <label>Dry season feed risk <select id="pfDryFeed"><option>Unknown</option><option>Low</option><option>Moderate</option><option>High</option></select></label>
-    <label>Weaning strategy <input id="pfWeaning"></label>
-    <label>Heifer growth kg/year <input id="pfHeiferGrowth" type="number" placeholder="e.g. 120"></label>
-    <label>Cow growth kg/year <input id="pfCowGrowth" type="number" placeholder="e.g. 60"></label>
-    <label>Dry cow BCS change/year <input id="pfDryBcs" type="number" step="0.1" placeholder="0.3"></label>
-    <label>Wet cow BCS change/year <input id="pfWetBcs" type="number" step="0.1" placeholder="-0.4"></label>
-    <label>Heifer puberty target kg <input id="pfPuberty" type="number" placeholder="320"></label>
-    <label>Target BCS <input id="pfTargetBcs" type="number" step="0.1" placeholder="3"></label>
-    <label class="wide">Notes <input id="pfNotes"></label>
-  </div>
-  <button class="primary" onclick="App.saveProfile()">Save Station Profile</button>
-  <div id="profileOut" class="panel"></div>
-</section>
-
-<section id="session" class="screen">
-  <h2>Session Builder</h2>
-  <div class="wizardPanel">
-    <h3>Quick setup</h3>
-    <div class="buttonRow">
-      <button onclick="App.sessionPreset('cowPreg')">Cow preg test</button>
-      <button onclick="App.sessionPreset('heiferPreg')">Heifer preg + weights</button>
-      <button onclick="App.sessionPreset('mixedTally')">Mixed mob tally</button>
-      <button onclick="App.copyLastSessionSetup()">Copy last session</button>
-      <button onclick="App.saveSessionTemplate()">Save setup as template</button>
-    </div>
-    <label>Saved session template <select id="sessionTemplate" onchange="App.loadSessionTemplate()"><option value="">None</option></select></label>
-    <p class="muted">Aim: select a preset, enter station/paddock/mob, check draft pens, then Start Session.</p>
+<section id="setup" class="screen">
+  <h2>New Job Setup</h2>
+  <div class="wizard">
+    <button onclick="App.setJobType('mob')">Mob Sheet</button>
+    <button onclick="App.setJobType('crush')">Crush Mode</button>
+    <button onclick="App.setJobType('yard')">Yard Tally</button>
+    <button onclick="App.repeatLastJob()">Copy last job</button>
   </div>
 
   <div class="grid4">
-    <label>Station <input id="ssStation"></label>
-    <label>Season/year <input id="ssYear" type="number"></label>
-    <label>Paddock <input id="ssPaddock"></label>
-    <label>Mob/muster name <input id="ssMob"></label>
-    <label>Operator/vet <input id="ssOperator"></label>
-    <label>Session date <input id="ssDate" type="date" onchange="App.renderCalvingGuide()"></label>
+    <label>Job type
+      <select id="jobType">
+        <option value="mob">Pregnancy mob sheet</option>
+        <option value="crush">Individual crush mode</option>
+        <option value="yard">Yard tally only</option>
+      </select>
+    </label>
+    <label>Station <input id="jobStation"></label>
+    <label>Year <input id="jobYear" type="number"></label>
+    <label>Date <input id="jobDate" type="date" onchange="App.renderCalvingGuide()"></label>
+    <label>Paddock <input id="jobPaddock"></label>
+    <label>Mob / group <input id="jobMob"></label>
+    <label>Vet <input id="jobVet" value="Ryan Smith"></label>
+    <label>Recorder <input id="jobRecorder"></label>
   </div>
-  <div id="recentStationButtons" class="buttonRow"></div>
 
-  <h3>Recording points</h3>
+  <h3>Recording options</h3>
   <div class="checks">
-    <label><input type="checkbox" id="recClass" checked> Class per animal</label>
-    <label><input type="checkbox" id="recAge" checked> Age/brand 0–9</label>
-    <label><input type="checkbox" id="recBCS" checked> BCS 1–5</label>
-    <label><input type="checkbox" id="recPreg" checked> Pregnancy E/P1–P9</label>
-    <label><input type="checkbox" id="recWeight"> Weight kg</label>
+    <label><input type="checkbox" id="recClass" checked> Class</label>
+    <label><input type="checkbox" id="recAge" checked> Age/brand</label>
+    <label><input type="checkbox" id="recBCS" checked> BCS</label>
+    <label><input type="checkbox" id="recPreg" checked> Pregnancy</label>
+    <label><input type="checkbox" id="recWeight"> Weight</label>
     <label><input type="checkbox" id="recWetDry"> Wet/Dry</label>
   </div>
 
-  <h3>Fixed values if not recording per animal</h3>
-  <div class="grid4">
-    <label>Fixed class <select id="fixClass"><option value="">None</option><option value="H">Maiden heifer</option><option value="F">First-lactation heifer</option><option value="W">Wet cow</option><option value="D">Dry cow</option><option value="C">Cull cow</option><option value="S">Speyed cow</option><option value="B">Bull</option></select></label>
-    <label>Fixed Wet/Dry <select id="fixWetDry"><option value="">None</option><option>Wet</option><option>Dry</option></select></label>
-  </div>
-
-  <h3>Draft Setup — select before starting</h3>
+  <h3>Draft Pens — optional</h3>
   <div class="draftPanel">
     <div>
-      <label>Saved draft template <select id="draftTemplate" onchange="App.loadDraftTemplate()"><option value="">Manual / none</option></select></label>
       <div class="buttonRow">
-        <button onclick="App.loadDraftExample('cows')">Example cow draft</button>
-        <button onclick="App.loadDraftExample('heifers')">Example heifer draft</button>
-        <button onclick="App.saveDraftTemplate()">Save current template</button>
+        <button onclick="App.loadDraftExample('cows')">Cow preg draft</button>
+        <button onclick="App.loadDraftExample('heifers')">Heifer draft</button>
         <button onclick="App.clearDraftPens()">Clear pens</button>
       </div>
       <div class="grid2">
-        <label>Pen name <input id="draftName" placeholder="e.g. Pen 1 - Wet empty + dry P8-P9"></label>
-        <label>Wet/Dry filter <select id="draftWetDry"><option value="ANY">Any</option><option>Wet</option><option>Dry</option></select></label>
-        <label>Classes <select id="draftClasses" multiple size="7"><option value="H">Maiden heifers</option><option value="F">First-lactation heifers</option><option value="W">Wet cows</option><option value="D">Dry cows</option><option value="C">Cull cows</option><option value="S">Speyed cows</option><option value="B">Bulls</option></select></label>
-        <label>Pregnancy stages <select id="draftPregs" multiple size="10"><option value="E">Empty</option><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option><option value="P4">P4</option><option value="P5">P5</option><option value="P6">P6</option><option value="P7">P7</option><option value="P8">P8</option><option value="P9">P9</option></select></label>
+        <label>Pen name <input id="draftName" placeholder="Pen 1 - Wet empty + dry P8-P9"></label>
+        <label>Wet/Dry <select id="draftWetDry"><option value="ANY">Any</option><option>Wet</option><option>Dry</option></select></label>
+        <label>Classes
+          <select id="draftClasses" multiple size="7">
+            <option value="H">Maiden heifers</option><option value="F">First-lactation heifers</option><option value="W">Wet cows</option>
+            <option value="D">Dry cows</option><option value="C">Cull cows</option><option value="S">Speyed cows</option><option value="B">Bulls</option>
+          </select>
+        </label>
+        <label>Preg stages
+          <select id="draftPregs" multiple size="10">
+            <option value="E">Empty</option><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option>
+            <option value="P4">P4</option><option value="P5">P5</option><option value="P6">P6</option><option value="P7">P7</option>
+            <option value="P8">P8</option><option value="P9">P9</option>
+          </select>
+        </label>
       </div>
-      <button onclick="App.addDraftPen()">Add pen to this session</button>
+      <button onclick="App.addDraftPen()">Add pen</button>
     </div>
     <div>
-      <h4>Selected pens for this session</h4>
+      <h4>Selected draft pens</h4>
       <div id="draftPens"></div>
       <div id="calvingGuide" class="miniPanel"></div>
     </div>
   </div>
 
-  <button class="primary bigButton" onclick="App.startSession()">Start Session</button>
+  <button class="primary bigButton" onclick="App.startJob()">Start Job</button>
+</section>
+
+<section id="mob" class="screen">
+  <div class="screenTop">
+    <h2>Pregnancy Mob Sheet</h2>
+    <button class="finish" onclick="App.finishJob()">Finish & Save</button>
+  </div>
+  <div id="mobBanner" class="banner"></div>
+  <div class="mobGrid">
+    <div class="panel">
+      <h3>Pregnancy stage totals</h3>
+      <div id="pregInputs" class="countGrid"></div>
+    </div>
+    <div class="panel">
+      <h3>BCS totals</h3>
+      <div id="bcsInputs" class="countGrid"></div>
+      <h3>Other tallies</h3>
+      <div id="otherInputs" class="countGrid"></div>
+    </div>
+  </div>
+  <div id="mobSummary" class="panel"></div>
 </section>
 
 <section id="crush" class="screen">
-  <div class="crushTop">
-    <div><h2>Crush Console</h2><div id="sessionBanner">No active session</div></div>
-    <div class="headCount"><b id="headCount">0</b><span>head</span></div>
-    <button class="finish" onclick="App.finishSession()">Finish & Save</button>
+  <div class="screenTop">
+    <h2>Crush Mode</h2>
+    <button class="finish" onclick="App.finishJob()">Finish & Save</button>
   </div>
   <div class="console">
     <div class="entryCard">
       <div class="animalNo">ANIMAL #<span id="animalNo">1</span></div>
-      <div id="prompt" class="prompt">START SESSION</div>
+      <div id="prompt" class="prompt">START JOB</div>
       <input id="quickInput" class="quickInput" autocomplete="off" autofocus placeholder="Keyboard only">
       <div id="fieldStack" class="fieldStack"></div>
       <div id="status" class="status">Ready</div>
-      <div class="help">Class: H heifer, F first-lactation, W wet cow, D dry cow, C cull, S speyed, B bull. Pregnancy: E empty, 1–9 auto records P1–P9. BCS: 1–5. F1: undo last.</div>
+      <div class="help">H/F/W/D/C/S/B • E or 1–9 for P1–P9 • BCS 1–5 • F1 undo last</div>
     </div>
     <div class="liveCard">
       <h3>Live Session</h3>
+      <div class="stat"><span>Recorded</span><b id="headCount">0</b></div>
       <div class="stat"><span>Pregnant</span><b id="livePreg">0</b></div>
-      <div class="stat"><span>Empty</span><b id="liveEmpty">0</b></div>
       <div class="stat"><span>Preg %</span><b id="livePregPct">0%</b></div>
       <h3>Draft board</h3><div id="draftBoard"></div>
       <h3>Last 5</h3><div id="lastFive"></div>
@@ -163,115 +158,45 @@
   </div>
 </section>
 
-<section id="tally" class="screen">
-  <h2>Mixed Mob Yard Tally</h2>
-  <h3>Enter total head counted by class</h3>
-  <p>Type the total count for each class. The + buttons are still available if you want to live-tally, but they are no longer required.</p>
-  <div class="tallyEntryGrid">
-    <label>Calves <input id="ytCalves" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
-    <label>Weaners <input id="ytWeaners" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
-    <label>Maiden heifers <input id="ytMaidenHeifers" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
-    <label>First-lactation heifers <input id="ytFirstLactationHeifers" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
-    <label>Wet cows <input id="ytWetCows" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
-    <label>Dry cows <input id="ytDryCows" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
-    <label>Cull cows <input id="ytCullCows" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
-    <label>Speyed cows <input id="ytSpeyedCows" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
-    <label>Bulls <input id="ytBulls" type="number" min="0" value="0" oninput="App.updateTallyFromInputs()"></label>
+<section id="yard" class="screen">
+  <div class="screenTop">
+    <h2>Yard Tally Totals</h2>
+    <button class="finish" onclick="App.finishJob()">Finish & Save</button>
   </div>
-
-  <details>
-    <summary>Optional live tally buttons</summary>
-    <div class="tallyButtons">
-      <button onclick="App.addTally('Calves')">+ Calves</button><button onclick="App.addTally('Weaners')">+ Weaners</button><button onclick="App.addTally('Maiden heifers')">+ Maiden heifers</button><button onclick="App.addTally('First-lactation heifers')">+ 1st-lactation heifers</button><button onclick="App.addTally('Wet cows')">+ Wet cows</button><button onclick="App.addTally('Dry cows')">+ Dry cows</button><button onclick="App.addTally('Cull cows')">+ Cull cows</button><button onclick="App.addTally('Speyed cows')">+ Speyed cows</button><button onclick="App.addTally('Bulls')">+ Bulls</button>
-    </div>
-  </details>
-  <div class="grid4">
-    <label>Station <input id="tyStation"></label><label>Year <input id="tyYear" type="number"></label><label>Paddock <input id="tyPaddock"></label><label>Mob <input id="tyMob"></label><label>Females joined/exposed <input id="tyJoined" type="number"></label><label>Females preg tested <input id="tyTested" type="number"></label><label>Pregnant at test <input id="tyPregnant" type="number"></label><label>Notes <input id="tyNotes"></label>
-  </div>
-  <div id="tallyOut" class="panel"></div>
-  <button class="primary" onclick="App.saveTally()">Save yard tally</button>
-  <button onclick="App.clearCurrentTally()">Clear current tally</button>
-</section>
-
-
-<section id="annual" class="screen">
-  <h2>Annual Livestock Schedule / BRICK-CashCow Inputs</h2>
-  <p>Use this at the final muster/end of cattle year. It feeds weaner production, missing cows, calf loss, AE and business KPI reporting.</p>
-  <div class="grid4">
-    <label>Station <input id="asStation"></label>
-    <label>Cattle year <input id="asYear" type="number"></label>
-    <label>Retained breeder cows <input id="asRetainedCows" type="number"></label>
-    <label>Females mated/joined <input id="asFemalesMated" type="number"></label>
-    <label>Pregnant at preg test <input id="asPregnant" type="number"></label>
-    <label>Weaners weaned <input id="asWeaners" type="number"></label>
-    <label>Average weaner weight kg <input id="asWeanerWeight" type="number"></label>
-    <label>Cows mustered this year <input id="asCowsMustered" type="number"></label>
-    <label>Cows retained last year <input id="asCowsLastYear" type="number"></label>
-    <label>Branders/calves marked <input id="asBranders" type="number"></label>
-    <label>Average cow weight kg <input id="asCowWeight" type="number"></label>
-    <label>Average cow weight last year kg <input id="asCowWeightLast" type="number"></label>
-    <label>Opening cattle capital $ <input id="asOpenCapital" type="number"></label>
-    <label>Closing cattle capital $ <input id="asCloseCapital" type="number"></label>
-    <label>Total beef income $ <input id="asIncome" type="number"></label>
-    <label>Variable costs $ <input id="asVarCosts" type="number"></label>
-    <label>Fixed costs $ <input id="asFixedCosts" type="number"></label>
-    <label>AE total estimate <input id="asAE" type="number"></label>
-    <label>Notes <input id="asNotes"></label>
-  </div>
-
-  <h3>Closing cattle numbers by class</h3>
-  <div class="grid4">
-    <label>Calves/weaners <input id="asClassWeaners" type="number"></label>
-    <label>Heifers rising 1 <input id="asClassH1" type="number"></label>
-    <label>Heifers rising 2 <input id="asClassH2" type="number"></label>
-    <label>Cows 3+ years <input id="asClassCows" type="number"></label>
-    <label>Speyed cows <input id="asClassSpeys" type="number"></label>
-    <label>Bulls <input id="asClassBulls" type="number"></label>
-    <label>Male weaners/yearlings <input id="asClassMales" type="number"></label>
-    <label>Avg sale/turnoff weight kg <input id="asSaleWeight" type="number"></label>
-  </div>
-
-  <button class="primary" onclick="App.saveAnnualSchedule()">Save Annual Schedule</button>
-  <button onclick="App.calculateAnnualPreview()">Preview KPIs</button>
-  <div id="annualOut" class="panel"></div>
-</section>
-
-<section id="bullpower" class="screen">
-  <h2>Bull Power Calculator</h2>
-  <p>Calculates bulls from mating demand and bull capacity, not just a fixed mating percentage.</p>
-  <div class="grid4">
-    <label>Station <input id="bpStation"></label>
-    <label>Year <input id="bpYear" type="number"></label>
-    <label>Females mated <input id="bpFemales" type="number" value="1000"></label>
-    <label>Target calves/weaners <input id="bpCalves" type="number" value="700"></label>
-    <label>Calf wastage % <input id="bpWastage" type="number" value="15"></label>
-    <label>Cycles per pregnancy <input id="bpCycles" type="number" step="0.1" value="1.5"></label>
-    <label>Matings per cycle <input id="bpMatings" type="number" value="2"></label>
-    <label>Peak conceptions % <input id="bpPeakPct" type="number" value="75"></label>
-    <label>Peak mating period days <input id="bpPeakDays" type="number" value="62"></label>
-    <label>Bull capacity/day <input id="bpCapacity" type="number" value="5"></label>
-    <label>Backup bulls <input id="bpBackup" type="number" value="1"></label>
-    <label>Bulls available <input id="bpAvailable" type="number"></label>
-  </div>
-  <button class="primary" onclick="App.calculateBullPower()">Calculate Bull Power</button>
-  <button onclick="App.saveBullPower()">Save Bull Power Result</button>
-  <div id="bullPowerOut" class="panel"></div>
-</section>
-
-<section id="library" class="screen">
-  <h2>Stations / Years</h2>
-  <button onclick="App.renderLibrary()">Refresh</button>
-  <button class="danger" onclick="App.clearAll()">Clear all local data</button>
-  <div id="libraryOut"></div>
+  <div id="yardInputs" class="tallyEntryGrid"></div>
+  <div id="yardSummary" class="panel"></div>
 </section>
 
 <section id="report" class="screen">
-  <div class="reportHeader"><h2>Station Manager Report</h2><div><button onclick="App.renderReport()">Refresh</button><button onclick="App.exportCSV()">CSV</button></div></div>
+  <div class="screenTop">
+    <h2>Station Manager Report</h2>
+    <button onclick="App.exportCSV()">Export CSV</button>
+  </div>
   <div id="reportSummary" class="panel"></div>
-  <div class="reportCards"><div id="profileCard" class="panel"></div><div id="kpiCard" class="panel"></div><div id="forecastCard" class="panel"></div><div id="advisoryCard" class="panel"></div><div id="businessCard" class="panel"></div><div id="bullPowerCard" class="panel"></div><div id="mergedTallyCard" class="panel"></div></div>
-  <div class="charts"><canvas id="chartPregClass"></canvas><canvas id="chartStage"></canvas><canvas id="chartSeason"></canvas><canvas id="chartBCS"></canvas><canvas id="chartHeiferWeight"></canvas><canvas id="chartCalving"></canvas><canvas id="chartProjection"></canvas><canvas id="chartProduction"></canvas><canvas id="chartBenchmark"></canvas><canvas id="chartWeanerProd"></canvas><canvas id="chartAnnualTrend"></canvas><canvas id="chartMergedTally"></canvas></div>
+  <div class="reportCards">
+    <div id="kpiCard" class="panel"></div>
+    <div id="forecastCard" class="panel"></div>
+    <div id="advisoryCard" class="panel"></div>
+    <div id="mergedCard" class="panel"></div>
+  </div>
+  <div class="charts">
+    <canvas id="chartPreg"></canvas>
+    <canvas id="chartBCS"></canvas>
+    <canvas id="chartCalving"></canvas>
+    <canvas id="chartMerged"></canvas>
+    <canvas id="chartDraft"></canvas>
+    <canvas id="chartBench"></canvas>
+  </div>
+</section>
+
+<section id="history" class="screen">
+  <h2>Station History</h2>
+  <button onclick="App.renderHistory()">Refresh</button>
+  <button class="danger" onclick="App.clearAll()">Clear local data</button>
+  <div id="historyOut"></div>
 </section>
 </main>
+
 <script src="app.js"></script>
 </body>
 </html>
