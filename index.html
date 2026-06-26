@@ -23,6 +23,7 @@
   <button onclick="showScreen('setup')">Session Setup</button>
   <button onclick="showScreen('crush')">Crush Console</button>
   <button onclick="showScreen('mob')">Mob Counts</button>
+  <button onclick="showScreen('tally'); renderTallySummary();">Yard Tally</button>
   <button onclick="showScreen('stations'); renderStationFolders();">Stations/Years</button>
   <button onclick="showScreen('report'); generateReports();">Reports</button>
 </nav>
@@ -106,11 +107,43 @@
       <select id="fixedClass">
         <option value="">None</option><option value="H">Maiden Heifer</option><option value="F">First Lactation Heifer</option>
         <option value="W">Wet Cow</option><option value="D">Dry Cow</option><option value="C">Cull for Age Cow</option>
+        <option value="S">Speyed Cow</option>
+        <option value="B">Bull</option>
       </select>
     </label>
     <label>Fixed Wet/Dry
       <select id="fixedWetDry"><option value="">None</option><option value="Wet">Wet</option><option value="Dry">Dry</option></select>
     </label>
+  </div>
+
+  
+  <h3>Draft Pen Setup</h3>
+  <p>Create drafting pens before starting. Rules are checked from top to bottom, so put priority pens first.</p>
+  <div class="draftBuilder">
+    <div class="draftForm">
+      <label>Pen name <input id="draftName" placeholder="e.g. Pen 1 - wet empties + dry P8-P9" /></label>
+      <label>Include classes
+        <select id="draftClasses" multiple size="7">
+          <option value="H">Maiden heifers</option><option value="F">First lactation heifers</option>
+          <option value="W">Wet cows</option><option value="D">Dry cows</option><option value="C">Cull cows</option>
+          <option value="S">Speyed cows</option><option value="B">Bulls</option>
+        </select>
+      </label>
+      <label>Wet/Dry filter
+        <select id="draftWetDry"><option value="ANY">Any</option><option value="Wet">Wet only</option><option value="Dry">Dry only</option></select>
+      </label>
+      <label>Pregnancy stages
+        <select id="draftPregs" multiple size="10">
+          <option value="E">Empty</option><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option>
+          <option value="P4">P4</option><option value="P5">P5</option><option value="P6">P6</option>
+          <option value="P7">P7</option><option value="P8">P8</option><option value="P9">P9</option>
+        </select>
+      </label>
+      <button type="button" onclick="addDraftPen()">Add Draft Pen</button>
+      <button type="button" onclick="loadCommonDraftTemplate()">Load Example Template</button>
+      <button type="button" onclick="clearDraftPens()">Clear Draft Pens</button>
+    </div>
+    <div><h4>Current draft pens</h4><div id="draftPenList" class="draftPenList"></div></div>
   </div>
 
   <button class="primary" onclick="startSession()">Start New Session</button>
@@ -167,6 +200,25 @@
   <div id="mobKpiPreview" class="summary"></div>
 </section>
 
+
+<section id="tally" class="screen">
+  <h2>Mixed Mob Yard Tally</h2>
+  <p>Fast tally for mixed mobs: calves, weaners, heifers, bulls, dry cows, wet cows, cull cows and other classes. These figures are used for calving, branding and weaning calculations.</p>
+  <div class="yardTallyGrid">
+    <button onclick="addTally('Calves')">+ Calves</button><button onclick="addTally('Weaners')">+ Weaners</button><button onclick="addTally('Maiden heifers')">+ Maiden heifers</button>
+    <button onclick="addTally('First lactation heifers')">+ First lactation heifers</button><button onclick="addTally('Wet cows')">+ Wet cows</button><button onclick="addTally('Dry cows')">+ Dry cows</button>
+    <button onclick="addTally('Cull cows')">+ Cull cows</button><button onclick="addTally('Bulls')">+ Bulls</button>
+    <button onclick="addTally('Speyed cows')">+ Speyed cows</button><button onclick="addTally('Other')">+ Other</button>
+  </div>
+  <div class="grid">
+    <label>Station <input id="tallyStation" /></label><label>Season / Year <input id="tallyYear" type="number" /></label><label>Paddock <input id="tallyPaddock" /></label><label>Mob / Muster Name <input id="tallyMob" /></label>
+    <label>In-season start <input id="seasonStart" type="date" /></label><label>In-season end <input id="seasonEnd" type="date" /></label>
+  </div>
+  <div id="tallySummary" class="summary"></div>
+  <button class="primary" onclick="saveYardTally()">Save Yard Tally</button>
+  <button onclick="clearCurrentTally()">Clear Current Tally</button>
+</section>
+
 <section id="stations" class="screen">
   <h2>Station / Year Folders</h2>
   <button onclick="renderStationFolders()">Refresh</button>
@@ -188,7 +240,7 @@
   <div class="chartGrid">
     <canvas id="classPregChart"></canvas><canvas id="stageClassChart"></canvas><canvas id="calvingPatternChart"></canvas>
     <canvas id="bcsPregChart"></canvas><canvas id="heiferWeightBandChart"></canvas><canvas id="productionKpiChart"></canvas>
-    <canvas id="stationTrendChart"></canvas>
+    <canvas id="stationTrendChart"></canvas><canvas id="benchmarkGapChart"></canvas><canvas id="seasonPregChart"></canvas>
   </div>
 </section>
 </main>
