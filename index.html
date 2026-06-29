@@ -20,6 +20,10 @@
 <nav>
   <button onclick="HerdIQ.show('home')">Home</button>
   <button onclick="HerdIQ.show('station')">Station</button>
+  <button onclick="HerdIQ.show('calendar')">Calendar</button>
+  <button onclick="HerdIQ.show('economics')">Economics</button>
+  <button onclick="HerdIQ.show('evidence')">Evidence Engine</button>
+  <button onclick="HerdIQ.show('bullpower')">Bull Power</button>
   <button onclick="HerdIQ.show('setup')">Session</button>
   <button onclick="HerdIQ.show('crush')">Crush</button>
   <button onclick="HerdIQ.show('endmob')">End of Mob</button>
@@ -77,6 +81,70 @@
       <select id="stDryFeed"><option>Unknown</option><option>Low</option><option>Moderate</option><option>High</option></select>
     </label>
   </div>
+
+  <h3>Station economics defaults</h3>
+  <div class="grid4">
+    <label>Cow value $/head <input id="stCowValue" type="number" value="900"></label>
+    <label>PTIC cow value $/head <input id="stPticValue" type="number" value="1100"></label>
+    <label>Weaner value $/head <input id="stWeanerValue" type="number" value="650"></label>
+    <label>Calf value $/head <input id="stCalfValue" type="number" value="250"></label>
+    <label>Heifer value $/head <input id="stHeiferValue" type="number" value="800"></label>
+    <label>Bull value $/head <input id="stBullValue" type="number" value="3000"></label>
+    <label>Steer value $/head <input id="stSteerValue" type="number" value="950"></label>
+    <label>Cull cow value $/head <input id="stCullCowValue" type="number" value="800"></label>
+    <label>Lick cost $/head/day <input id="stLickCostDay" type="number" step="0.01" value="0.45"></label>
+    <label>Mustering $/head <input id="stMusteringCost" type="number" value="12"></label>
+    <label>Transport $/head <input id="stTransportCost" type="number" value="35"></label>
+    <label>Vet labour $/head <input id="stVetCostHead" type="number" value="8"></label>
+    <label>PG cost $/dose <input id="stPgCost" type="number" step="0.01" value="6.50"></label>
+    <label>HGP cost $/head <input id="stHgpCost" type="number" step="0.01" value="12"></label>
+    <label>HGP extra gain kg <input id="stHgpGainKg" type="number" value="18"></label>
+    <label>Liveweight price $/kg <input id="stKgPrice" type="number" step="0.01" value="3.20"></label>
+    <label>Out-of-season calf discount $/head <input id="stOosDiscount" type="number" value="120"></label>
+  </div>
+
+
+  <h3>CashCow / northern beef benchmark assumptions</h3>
+  <div class="grid4">
+    <label>Expected calf wastage % <input id="stCalfWastage" type="number" value="12"></label>
+    <label>Rejoin conception probability % <input id="stRejoinPregPct" type="number" value="65"></label>
+    <label>Discount rate % <input id="stDiscountRate" type="number" value="8"></label>
+    <label>Target weaning weight kg <input id="stTargetWeanerKg" type="number" value="180"></label>
+    <label>Peak joining % in first period <input id="stPeakJoinPct" type="number" value="75"></label>
+    <label>Bull capacity matings/day <input id="stBullCapacityDay" type="number" value="5"></label>
+    <label>Peak mating period days <input id="stPeakMatingDays" type="number" value="62"></label>
+    <label>Backup bulls required <input id="stBackupBulls" type="number" value="1"></label>
+  </div>
+
+
+  <h3>Northern Beef Evidence Engine settings</h3>
+  <div class="grid4">
+    <label>Wet-season P status
+      <select id="stWetPStatus"><option>Unknown</option><option>Adequate</option><option>Marginal</option><option>Deficient</option></select>
+    </label>
+    <label>Dry-season protein risk
+      <select id="stProteinRisk"><option>Unknown</option><option>Low</option><option>Moderate</option><option>High</option></select>
+    </label>
+    <label>Relative pasture utilisation
+      <select id="stUtilisation"><option>Unknown</option><option>Low</option><option>Safe / target</option><option>High</option><option>Very high</option></select>
+    </label>
+    <label>Land condition
+      <select id="stLandCondition"><option>Unknown</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
+    </label>
+    <label>Bos indicus content %
+      <input id="stBosIndicusPct" type="number" value="75">
+    </label>
+    <label>Typical age first joining months
+      <input id="stFirstJoinMonths" type="number" value="24">
+    </label>
+    <label>Calving start month
+      <select id="stCalvingStartMonth"><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select>
+    </label>
+    <label>Early weaning cost $/calf
+      <input id="stEarlyWeanCost" type="number" value="35">
+    </label>
+  </div>
+
   <button class="primary" onclick="HerdIQ.saveStation()">Save Station</button>
   <div id="stationPreview" class="panel"></div>
 </section>
@@ -218,6 +286,108 @@
   <div id="yardSummary" class="panel"></div>
 </section>
 
+
+<section id="calendar" class="screen">
+  <h2>Whole Station Management Calendar</h2>
+  <div class="grid4">
+    <label>Station <input id="calStation"></label>
+    <label>Year <input id="calYear" type="number"></label>
+    <label>Animal class <select id="calClass"><option>Breeder cows</option><option>Wet cows</option><option>Dry cows</option><option>Maiden heifers</option><option>First-lactation heifers</option><option>Weaners</option><option>Steers</option><option>Bulls</option><option>Speyed cows</option><option>Cull cows</option></select></label>
+    <label>Head <input id="calHead" type="number"></label>
+    <label>Date <input id="calDate" type="date"></label>
+    <label>Action <select id="calAction"><option>Pregnancy test</option><option>Weaning</option><option>Mustering</option><option>Transport</option><option>Lick supplementation</option><option>HGP implant</option><option>PG abortion/rejoin program</option><option>Vaccination/medication</option><option>Culling/sale</option><option>Joining</option></select></label>
+    <label>Cost $/head <input id="calCostHead" type="number" step="0.01"></label>
+    <label>Benefit $/head <input id="calBenefitHead" type="number" step="0.01"></label>
+    <label>Notes <input id="calNotes"></label>
+  </div>
+  <button class="primary" onclick="HerdIQ.addCalendarEvent()">Add Event</button>
+  <button onclick="HerdIQ.renderCalendar()">Refresh</button>
+  <div id="calendarList" class="panel"></div>
+</section>
+
+<section id="economics" class="screen">
+  <h2>Management Strategy Cost-Benefit Calculator</h2>
+  <div class="grid4">
+    <label>Station <input id="ecoStation"></label>
+    <label>Scenario name <input id="ecoName"></label>
+    <label>Animal class <select id="ecoClass"><option>Wet cows</option><option>Dry cows</option><option>Maiden heifers</option><option>First-lactation heifers</option><option>Out-of-season pregnant cows</option><option>Steers</option><option>Weaners</option><option>Bulls</option></select></label>
+    <label>Head <input id="ecoHead" type="number" value="100"></label>
+    <label>Strategy <select id="ecoStrategy" onchange="HerdIQ.loadStrategyDefaults()"><option value="oos_calves">Keep out-of-season calves</option><option value="pg_rejoin">Abort out-of-season pregnancies with PG and rejoin</option><option value="hgp">HGP implant</option><option value="lick">Feed lick to maintain BCS</option><option value="do_nothing">Leave cow/wean calf/rejoin next year</option><option value="custom">Custom</option></select></label>
+    <label>Extra income $/head <input id="ecoIncomeHead" type="number" step="0.01"></label>
+    <label>Medication/HGP/PG $/head <input id="ecoMedHead" type="number" step="0.01"></label>
+    <label>Vet $/head <input id="ecoVetHead" type="number" step="0.01"></label>
+    <label>Lick/feed $/head <input id="ecoFeedHead" type="number" step="0.01"></label>
+    <label>Mustering $/head <input id="ecoMusterHead" type="number" step="0.01"></label>
+    <label>Transport $/head <input id="ecoTransportHead" type="number" step="0.01"></label>
+    <label>Other $/head <input id="ecoOtherHead" type="number" step="0.01"></label>
+    <label>Risk adjustment % <input id="ecoRiskPct" type="number" value="0"></label>
+    <label>Use CashCow economic mode?
+          <select id="ecoCashCowMode"><option value="yes">Yes - use benchmark defaults</option><option value="no">No - manual only</option></select>
+        </label>
+        <label>Expected conception/rejoin % <input id="ecoConceptionPct" type="number" value="65"></label>
+        <label>Expected calf wastage % <input id="ecoCalfWastagePct" type="number" value="12"></label>
+        <label>Months until benefit <input id="ecoMonthsDelay" type="number" value="12"></label>
+        <label>Notes <input id="ecoNotes"></label>
+  </div>
+  <button class="primary" onclick="HerdIQ.calculateEconomics()">Calculate</button>
+  <button onclick="HerdIQ.saveScenario()">Save Scenario</button>
+  <div id="economicOut" class="panel"></div>
+</section>
+
+
+<section id="bullpower" class="screen">
+  <h2>Bull Power Economics</h2>
+  <p>Uses mating-demand logic from the bull power approach: calculate female mating demand during the peak period, compare with sound bull capacity, then estimate the economic cost of being short.</p>
+  <div class="grid4">
+    <label>Station <input id="bpStation"></label>
+    <label>Year <input id="bpYear" type="number"></label>
+    <label>Females mated <input id="bpFemales" type="number" value="1000"></label>
+    <label>Target calves/weaners <input id="bpTargetCalves" type="number" value="700"></label>
+    <label>Calf wastage % <input id="bpWastage" type="number" value="12"></label>
+    <label>Cycles per pregnancy <input id="bpCycles" type="number" step="0.1" value="1.5"></label>
+    <label>Matings per cycle <input id="bpMatings" type="number" step="0.1" value="2"></label>
+    <label>Peak conceptions % <input id="bpPeakPct" type="number" value="75"></label>
+    <label>Peak mating period days <input id="bpPeakDays" type="number" value="62"></label>
+    <label>Bull capacity/day <input id="bpCapacity" type="number" value="5"></label>
+    <label>Backup bulls <input id="bpBackup" type="number" value="1"></label>
+    <label>Bulls available <input id="bpAvailable" type="number" value="20"></label>
+    <label>Value per weaner $ <input id="bpWeanerValue" type="number" value="650"></label>
+    <label>Soundness failure risk % <input id="bpFailureRisk" type="number" value="10"></label>
+  </div>
+  <button class="primary" onclick="HerdIQ.calculateBullPower()">Calculate Bull Power</button>
+  <button onclick="HerdIQ.saveBullPower()">Save Bull Power Scenario</button>
+  <div id="bullPowerOut" class="panel"></div>
+</section>
+
+
+<section id="evidence" class="screen">
+  <h2>Northern Beef Evidence Engine</h2>
+  <p>Evidence-based decision support using CashCow, Tim Schatz/NT phosphorus work, MLA heifer management, Sweet Spot pasture utilisation, and low-cost resilience strategy principles.</p>
+  <div class="grid4">
+    <label>Station <input id="evStation"></label>
+    <label>Year <input id="evYear" type="number"></label>
+    <label>Run from latest session?
+      <select id="evUseLatest"><option value="yes">Yes</option><option value="no">Manual only</option></select>
+    </label>
+    <label>Manual breeders <input id="evBreeders" type="number"></label>
+    <label>Manual pregnant % <input id="evPregPct" type="number"></label>
+    <label>Manual calf loss % <input id="evCalfLossPct" type="number"></label>
+    <label>Manual average BCS <input id="evAvgBCS" type="number" step="0.1"></label>
+    <label>Manual low BCS % <input id="evLowBCSPct" type="number"></label>
+    <label>Manual heifer average weight kg <input id="evHeiferWeight" type="number"></label>
+    <label>Manual heifer head <input id="evHeiferHead" type="number"></label>
+    <label>Manual annual utilisation
+      <select id="evUtilisation"><option>Use station profile</option><option>Low</option><option>Safe / target</option><option>High</option><option>Very high</option></select>
+    </label>
+    <label>Manual P status
+      <select id="evPStatus"><option>Use station profile</option><option>Adequate</option><option>Marginal</option><option>Deficient</option></select>
+    </label>
+  </div>
+  <button class="primary" onclick="HerdIQ.runEvidenceEngine()">Run Evidence Engine</button>
+  <button onclick="HerdIQ.saveEvidenceRun()">Save Evidence Run</button>
+  <div id="evidenceOut" class="panel"></div>
+</section>
+
 <section id="report" class="screen">
   <div class="topline">
     <h2>Station Manager Report</h2>
@@ -228,7 +398,7 @@
     <div id="kpiCard" class="panel"></div>
     <div id="forecastCard" class="panel"></div>
     <div id="advisoryCard" class="panel"></div>
-    <div id="mergedCard" class="panel"></div>
+    <div id="mergedCard" class="panel"></div><div id="economicsCard" class="panel"></div><div id="calendarCard" class="panel"></div><div id="bullPowerCard" class="panel"></div><div id="cashCowOpportunityCard" class="panel"></div><div id="evidenceCard" class="panel"></div>
   </div>
   <div class="chart-grid">
     <canvas id="pregChart"></canvas>
