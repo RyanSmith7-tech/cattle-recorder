@@ -231,6 +231,13 @@
             <option value="P7">P7</option><option value="P8">P8</option><option value="P9">P9</option>
           </select>
         </label>
+        <label>Wet / dry status
+          <select id="draftWetDry" multiple size="2">
+            <option value="W">Wet</option>
+            <option value="D">Dry</option>
+          </select>
+          <small>Leave both unselected for any status. Select both to explicitly include both.</small>
+        </label>
       </div>
       <button onclick="HerdIQ.addDraftRule()">Add draft rule</button>
     </div>
