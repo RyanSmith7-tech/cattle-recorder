@@ -31,6 +31,7 @@
   <button onclick="HerdIQ.show('endmob')">End of Mob</button>
   <button onclick="HerdIQ.show('report')">Report</button>
   <button onclick="HerdIQ.show('history')">History</button>
+  <button onclick="HerdIQ.show('data')">Data & Backup</button>
 </nav>
 
 <main>
@@ -184,6 +185,7 @@
     <label><input type="checkbox" id="fieldPreg" checked /> Pregnancy</label>
     <label><input type="checkbox" id="fieldBCS" checked /> BCS</label>
     <label><input type="checkbox" id="fieldWeight" /> Weight</label>
+    <label><input type="checkbox" id="fieldWetDry" checked /> Wet/Dry</label>
   </div>
 
   <div class="grid4">
@@ -428,6 +430,24 @@
   <button class="danger" onclick="HerdIQ.clearAll()">Clear all local data</button>
   <div id="historyList"></div>
 </section>
+
+<section id="data" class="screen">
+  <h2>Data Storage & Backup</h2>
+  <div class="panel">
+    <h3>Field data protection</h3>
+    <p>HerdIQ saves every animal automatically on this device. A second copy is mirrored into the browser's offline database.</p>
+    <div id="storageStatus" class="banner">Checking storage…</div>
+    <div class="preset-row">
+      <button class="primary" onclick="HerdIQ.exportBackup()">Download full backup</button>
+      <button onclick="document.getElementById('backupFile').click()">Restore backup</button>
+      <button onclick="HerdIQ.requestPersistentStorage()">Protect offline storage</button>
+      <input id="backupFile" type="file" accept="application/json,.json" hidden onchange="HerdIQ.importBackup(this.files[0])" />
+    </div>
+    <p><b>Recommended field routine:</b> create a full backup after every mob and save it to iCloud Drive, OneDrive or another separate location.</p>
+  </div>
+  <div id="dataSummary" class="panel"></div>
+</section>
+
 </main>
 
 <script src="app.js"></script>
