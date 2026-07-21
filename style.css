@@ -16,3 +16,5 @@
 .priorityLow{border-left:6px solid #51cf66}
 .ruleList li{margin-bottom:6px}
 @media(max-width:1100px){.evidenceGrid{grid-template-columns:1fr}}
+
+.previous-animal{display:block;width:100%;text-align:left;color:white;border:2px solid transparent}.previous-animal:hover,.previous-animal:focus{border-color:#ffd43b}.full-width{grid-column:1/-1}.table-scroll{overflow:auto;max-height:420px}.share-panel{display:flex;align-items:end;gap:10px;flex-wrap:wrap}.share-panel label{min-width:280px;flex:1}.share-panel span{font-size:13px;color:#d7e7f5}.chart-grid canvas{min-height:260px;max-height:320px}@media print{header,nav,.report-actions,.share-panel{display:none!important}body{background:white;color:#111;overflow:visible}main,.screen{height:auto;overflow:visible}.screen{display:none!important}#report{display:block!important}.panel{background:white;color:#111;border:1px solid #bbb;break-inside:avoid}.chart-grid{grid-template-columns:1fr 1fr}.chart-grid canvas{break-inside:avoid}.table th{background:#ddd;color:#111}}

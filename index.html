@@ -7,6 +7,8 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 <header>
@@ -56,6 +58,7 @@
   <div class="grid4">
     <label>Station name <input id="stName" /></label>
     <label>Manager <input id="stManager" /></label>
+    <label>Client report email <input id="stEmail" type="email" placeholder="manager@station.com.au" /></label>
     <label>Region <input id="stRegion" /></label>
     <label>Country type
       <select id="stCountry">
@@ -187,12 +190,10 @@
     <label>Default class
       <select id="defaultClass">
         <option value="">Ask each animal</option>
-        <option value="H">Maiden heifer</option>
-        <option value="F">First-lactation heifer</option>
-        <option value="W">Wet cow</option>
-        <option value="D">Dry cow</option>
-        <option value="C">Cull cow</option>
-        <option value="S">Speyed cow</option>
+        <option value="H">Heifer</option>
+        <option value="C">Cow</option>
+        <option value="S">Speyed</option>
+        <option value="A">Aged</option>
       </select>
     </label>
     <label>Weight prompt
@@ -216,13 +217,10 @@
         <label>Pen name <input id="draftName" placeholder="Pen 1 - Wet empty + dry P8-P9" /></label>
         <label>Classes
           <select id="draftClasses" multiple size="7">
-            <option value="H">Maiden heifers</option>
-            <option value="F">First-lactation heifers</option>
-            <option value="W">Wet cows</option>
-            <option value="D">Dry cows</option>
-            <option value="C">Cull cows</option>
-            <option value="S">Speyed cows</option>
-            <option value="B">Bulls</option>
+            <option value="H">Heifers</option>
+            <option value="C">Cows</option>
+            <option value="S">Speyed</option>
+            <option value="A">Aged</option>
           </select>
         </label>
         <label>Preg stages
@@ -259,7 +257,7 @@
       <input id="quickInput" class="quick-input" autocomplete="off" autofocus />
       <div id="fieldStack" class="field-stack"></div>
       <div id="saveStatus" class="save-status">Ready</div>
-      <div class="help">Class H/F/W/D/C/S • Age 0–9 • Pregnancy E or 1–9 • BCS 1–5 • F1 undo</div>
+      <div class="help">Order: Class → Age → BCS → Pregnancy → Weight (when enabled) → Wet/Dry. BCS: type 35 for 3.5. Empty Backspace = previous field. Tap a previous animal to edit. F1 removes last animal.</div>
     </div>
     <div class="side-card">
       <h3>Live</h3>
@@ -389,24 +387,31 @@
 </section>
 
 <section id="report" class="screen">
-  <div class="topline">
+  <div class="topline report-actions">
     <h2>Station Manager Report</h2>
-    <button onclick="HerdIQ.exportCSV()">Export CSV</button>
+    <div class="preset-row">
+      <button onclick="HerdIQ.exportCSV()">Export all data CSV</button>
+      <button onclick="HerdIQ.downloadPDF()">Save PDF</button>
+      <button class="primary" onclick="HerdIQ.sharePDF()">Share PDF / Email</button>
+    </div>
+  </div>
+  <div class="share-panel panel">
+    <label>Client email <input id="reportClientEmail" type="email" placeholder="client@station.com.au"></label>
+    <button onclick="HerdIQ.emailDetails()">Open addressed email</button>
+    <span>On iPad, “Share PDF / Email” creates the PDF and opens the native share sheet so Mail can attach it.</span>
   </div>
   <div id="reportHeader" class="panel"></div>
   <div class="report-grid">
     <div id="kpiCard" class="panel"></div>
     <div id="forecastCard" class="panel"></div>
     <div id="advisoryCard" class="panel"></div>
-    <div id="mergedCard" class="panel"></div><div id="economicsCard" class="panel"></div><div id="calendarCard" class="panel"></div><div id="bullPowerCard" class="panel"></div><div id="cashCowOpportunityCard" class="panel"></div><div id="evidenceCard" class="panel"></div>
+    <div id="mergedCard" class="panel full-width"></div>
+    <div id="correlationCard" class="panel"></div>
+    <div id="economicsCard" class="panel"></div><div id="calendarCard" class="panel"></div><div id="bullPowerCard" class="panel"></div><div id="cashCowOpportunityCard" class="panel"></div><div id="evidenceCard" class="panel"></div>
   </div>
+  <h3>Complete Graph Library</h3>
   <div class="chart-grid">
-    <canvas id="pregChart"></canvas>
-    <canvas id="bcsChart"></canvas>
-    <canvas id="calvingChart"></canvas>
-    <canvas id="classChart"></canvas>
-    <canvas id="draftChart"></canvas>
-    <canvas id="benchmarkChart"></canvas>
+    <canvas id="pregChart"></canvas><canvas id="bcsChart"></canvas><canvas id="ageChart"></canvas><canvas id="classChart"></canvas><canvas id="wetDryChart"></canvas><canvas id="draftChart"></canvas><canvas id="calvingChart"></canvas><canvas id="bcsPregChart"></canvas><canvas id="agePregChart"></canvas><canvas id="classPregChart"></canvas><canvas id="wetDryPregChart"></canvas><canvas id="ageBcsChart"></canvas><canvas id="classBcsChart"></canvas><canvas id="wetDryBcsChart"></canvas><canvas id="pregWeightChart"></canvas><canvas id="bcsWeightChart"></canvas><canvas id="benchmarkChart"></canvas>
   </div>
 </section>
 
