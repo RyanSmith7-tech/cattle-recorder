@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-  <title>Central Vets HerdIQ</title>
+  <title>Central Vets HerdIQ 1.0</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,8 +14,8 @@
 <header>
   <img src="image.png" onerror="this.style.display='none'" />
   <div>
-    <h1>Central Vets HerdIQ</h1>
-    <p>Fast yard recording • Northern beef production intelligence</p>
+    <h1>Central Vets HerdIQ 1.0</h1>
+    <p>Touch-first yard recording • Offline cattle database • Professional reporting</p>
   </div>
 </header>
 
@@ -254,32 +254,52 @@
 </section>
 
 <section id="crush" class="screen">
-  <div class="topline">
-    <h2>Crush Recorder</h2>
+  <div class="topline crush-topline">
+    <div>
+      <h2>Crush Recorder</h2>
+      <div id="crushBanner" class="crush-subtitle"></div>
+    </div>
     <button class="finish" onclick="HerdIQ.finishSession()">Finish Mob</button>
   </div>
-  <div id="crushBanner" class="banner"></div>
-  <div class="crush-layout">
-    <div class="entry-card">
-      <div class="animal-number">Animal #<span id="animalNumber">1</span></div>
-      <div id="mainPrompt" class="main-prompt">START SESSION</div>
-      <input id="quickInput" class="quick-input" autocomplete="off" autofocus />
-      <div id="fieldStack" class="field-stack"></div>
+
+  <div class="touch-crush-layout">
+    <aside class="previous-strip">
+      <h3>Previous</h3>
+      <div id="lastFive"></div>
+      <button class="undo-button" onclick="HerdIQ.undoLast()">Undo last</button>
+    </aside>
+
+    <section class="touch-entry-card">
+      <div class="animal-header-row">
+        <div class="animal-number">Animal #<span id="animalNumber">1</span></div>
+        <div id="currentDraft" class="current-draft compact-draft">No draft yet</div>
+      </div>
+      <div id="mainPrompt" class="main-prompt">SELECT CLASS</div>
+      <div id="touchOptions" class="touch-options" aria-live="polite"></div>
+      <div id="weightKeyboard" class="weight-keyboard hidden">
+        <input id="quickInput" class="quick-input" inputmode="decimal" autocomplete="off" placeholder="Enter weight in kg" />
+        <button class="primary touch-confirm" onclick="HerdIQ.confirmTypedEntry()">Confirm</button>
+      </div>
+      <div class="touch-actions">
+        <button onclick="HerdIQ.backField()">← Previous field</button>
+        <button onclick="HerdIQ.clearCurrentAnimal()">Clear current</button>
+      </div>
+      <div id="fieldStack" class="field-stack compact-fields"></div>
       <div id="saveStatus" class="save-status">Ready</div>
-      <div class="help">Order: Class → Age → BCS → Pregnancy → Weight (when enabled) → Wet/Dry. BCS: type 35 for 3.5. Empty Backspace = previous field. Tap a previous animal to edit. F1 removes last animal.</div>
-    </div>
-    <div class="side-card">
-      <h3>Live</h3>
-      <div class="stat"><span>Recorded</span><b id="liveRecorded">0</b></div>
-      <div class="stat"><span>Pregnant</span><b id="livePregnant">0</b></div>
-      <div class="stat"><span>Preg %</span><b id="livePregRate">0%</b></div>
-      <h3>Current draft</h3>
-      <div id="currentDraft" class="current-draft">-</div>
+    </section>
+
+    <aside class="live-side-card">
+      <div class="live-kpis">
+        <div class="stat"><span>Recorded</span><b id="liveRecorded">0</b></div>
+        <div class="stat"><span>Pregnant</span><b id="livePregnant">0</b></div>
+        <div class="stat"><span>Preg %</span><b id="livePregRate">0%</b></div>
+      </div>
       <h3>Draft board</h3>
       <div id="draftBoard"></div>
-      <h3>Last 5</h3>
-      <div id="lastFive"></div>
-    </div>
+      <div class="keyboard-help">
+        <b>Keyboard still works:</b> H/C/S/A, age 0–9, BCS 10–50 or 1.0–5.0, E/P1–P9, W/D.
+      </div>
+    </aside>
   </div>
 </section>
 
